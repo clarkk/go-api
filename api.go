@@ -1,8 +1,11 @@
 package api
 
 import (
+	"fmt"
+	"log"
 	"strings"
 	"net/http"
+	"runtime/debug"
 	"compress/gzip"
 	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
@@ -21,10 +24,7 @@ const (
 )
 
 type (
-	list 	map[string]string
-	body 	map[string]interface{}
-	
-	request struct {
+	Request struct {
 		w 				http.ResponseWriter
 		r 				*http.Request
 		accept_gzip 	bool
@@ -33,6 +33,9 @@ type (
 		header_sent 	bool
 		header 			list
 	}
+	
+	list 	map[string]string
+	body 	map[string]interface{}
 	
 	response_error struct {
 		Error 	list 			`json:"error"`
@@ -43,8 +46,8 @@ type (
 	}*/
 )
 
-func NewRequest(w http.ResponseWriter, r *http.Request) *request{
-	return &request{
+func NewRequest(w http.ResponseWriter, r *http.Request) *Request{
+	return &Request{
 		w:				w,
 		r:				r,
 		accept_gzip:	accept_gzip(r),
@@ -54,11 +57,27 @@ func NewRequest(w http.ResponseWriter, r *http.Request) *request{
 	}
 }
 
-func (a *request) Body() body {
+func (a *Request) Recover(){
+	if r := recover(); r != nil {
+		a.Error(http.StatusBadRequest, errors.New("Unexpected error"))
+		log.Println(r, "\n"+string(debug.Stack()))
+	}
+}
+
+func (a *Request) Auth() (code int, error error){
+	key := a.r.Header.Get("X-Key")
+	hash := a.r.Header.Get("X-Hash")
+	fmt.Println("key:", key)
+	fmt.Println("hash:", hash)
+	
+	return 0, nil
+}
+
+func (a *Request) Body() body {
 	return a.body
 }
 
-func (a *request) Parse_body(post_limit int64) (int, error){
+func (a *Request) Parse_body(post_limit int64) (int, error){
 	body_bytes, err := serv.Post_limit(a.w, a.r, post_limit)
 	if err != nil {
 		return http.StatusRequestEntityTooLarge, errors.New(http.StatusText(http.StatusRequestEntityTooLarge))
@@ -82,7 +101,7 @@ func (a *request) Parse_body(post_limit int64) (int, error){
 	return 0, nil
 }
 
-func (a *request) Error(code int, error error){
+func (a *Request) Error(code int, error error){
 	b, err := json.Marshal(response_error{
 		Error: list{"request": error.Error()},
 	})
@@ -94,14 +113,14 @@ func (a *request) Error(code int, error error){
 	a.w.Write(b)
 }
 
-func (a *request) Header(key string, value string){
+func (a *Request) Header(key string, value string){
 	if a.header_sent {
 		panic("Header already sent. Can not set header: "+key)
 	}
 	a.header[key] = value
 }
 
-func (a *request) Response_JSON(code int, res body){
+func (a *Request) Response_JSON(code int, res body){
 	a.write_header(code)
 	
 	if a.accept_gzip {
@@ -117,7 +136,7 @@ func (a *request) Response_JSON(code int, res body){
 	}
 }
 
-func (a *request) Response(code int, res string){
+func (a *Request) Response(code int, res string){
 	a.write_header(code)
 	
 	if a.accept_gzip {
@@ -129,7 +148,7 @@ func (a *request) Response(code int, res string){
 	}
 }
 
-func (a *request) write_header(code int){
+func (a *Request) write_header(code int){
 	a.Header(CONTENT_TYPE, TYPE_JSON)
 	if a.accept_gzip {
 		a.Header(CONTENT_ENCODING, ENCODING_GZIP)

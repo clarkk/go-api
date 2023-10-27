@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	IDEM_HEADER_KEY 	= "Idempotency-Key"
-	IDEM_HEADER_CACHED 	= "Idempotency-Key-Cached"
+	IDEM_HEADER_KEY 	= "X-Idempotency-Key"
+	IDEM_HEADER_CACHED 	= "X-Idempotency-Key-Cached"
 	IDEM_HEADER_LENGTH 	= 40
 	IDEM_EXPIRES 		= 60 * 60 * 24
 	IDEM_HASH 			= "API-IDEM:%s:%s"
@@ -35,24 +35,24 @@ type (
 	}
 )
 
-func (l *Idempotency) Cache() (int, string, head.Header){
-	if l.http_code != 0 {
-		return l.http_code, l.res, head.Header{
+func (d *Idempotency) Cache() (int, string, head.Header){
+	if d.http_code != 0 {
+		return d.http_code, d.res, head.Header{
 			IDEM_HEADER_CACHED,
-			head.GMT_unix_time(l.time),
+			head.GMT_unix_time(d.time),
 		}
 	}
 	return 0, "", head.Header{}
 }
 
-func (l *Idempotency) Error() (int, error) {
-	if l.error == nil {
+func (d *Idempotency) Error() (int, error) {
+	if d.error == nil {
 		return 0, nil
 	}
-	return l.http_code, l.error
+	return d.http_code, d.error
 }
 
-func (l *Idempotency) Store_JSON(http_code int, res map[string]interface{}){
+func (d *Idempotency) Store_JSON(http_code int, res map[string]interface{}){
 	if !store_http_codes(http_code){
 		return
 	}
@@ -61,15 +61,15 @@ func (l *Idempotency) Store_JSON(http_code int, res map[string]interface{}){
 	if err != nil {
 		panic("Idempotency store JSON encode: "+err.Error())
 	}
-	l.Store(http_code, string(b))
+	d.Store(http_code, string(b))
 }
 
-func (l *Idempotency) Store(http_code int, res string){
+func (d *Idempotency) Store(http_code int, res string){
 	if !store_http_codes(http_code){
 		return
 	}
 	
-	if err := rdb.Hset(context.Background(), l.hash, cache{
+	if err := rdb.Hset(context.Background(), d.hash, cache{
 		Time:		time.Now().Unix(),
 		Http_code:	http_code,
 		Res:		res,
