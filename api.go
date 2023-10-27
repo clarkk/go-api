@@ -6,7 +6,6 @@ import (
 	"compress/gzip"
 	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
-	"github.com/clarkk/go-api/idem"
 	"github.com/clarkk/go-util/serv"
 )
 
@@ -30,7 +29,9 @@ type (
 		r 				*http.Request
 		accept_gzip 	bool
 		body 			body
-		idem 			*idem.Idempotency
+		
+		header_sent 	bool
+		header 			list
 	}
 	
 	response_error struct {
@@ -43,19 +44,14 @@ type (
 )
 
 func NewRequest(w http.ResponseWriter, r *http.Request) *request{
-	w.Header().Set(CONTENT_TYPE, TYPE_JSON)
 	return &request{
-		w,
-		r,
-		accept_gzip(r),
-		body{},
-		nil,
+		w:				w,
+		r:				r,
+		accept_gzip:	accept_gzip(r),
+		body:			body{},
+		
+		header:			list{},
 	}
-}
-
-func (a *request) Idempotency(uid string) *idem.Idempotency {
-	a.idem = idem.Init(a.r, uid)
-	return a.idem
 }
 
 func (a *request) Body() body {
@@ -98,8 +94,16 @@ func (a *request) Error(code int, error error){
 	a.w.Write(b)
 }
 
+func (a *request) Header(key string, value string){
+	if a.header_sent {
+		panic("Header already sent. Can not set header: "+key)
+	}
+	a.header[key] = value
+}
+
 func (a *request) Response_JSON(code int, res body){
 	a.write_header(code)
+	
 	if a.accept_gzip {
 		gz := gzip.NewWriter(a.w)
 		defer gz.Close()
@@ -115,6 +119,7 @@ func (a *request) Response_JSON(code int, res body){
 
 func (a *request) Response(code int, res string){
 	a.write_header(code)
+	
 	if a.accept_gzip {
 		gz := gzip.NewWriter(a.w)
 		defer gz.Close()
@@ -125,10 +130,18 @@ func (a *request) Response(code int, res string){
 }
 
 func (a *request) write_header(code int){
+	a.Header(CONTENT_TYPE, TYPE_JSON)
 	if a.accept_gzip {
-		a.w.Header().Set(CONTENT_ENCODING, ENCODING_GZIP)
+		a.Header(CONTENT_ENCODING, ENCODING_GZIP)
 	}
+	
+	header := a.w.Header()
+	for key, value := range a.header {
+		header.Set(key, value)
+	}
+	
 	a.w.WriteHeader(code)
+	a.header_sent = true
 }
 
 func accept_gzip(r *http.Request) bool {
