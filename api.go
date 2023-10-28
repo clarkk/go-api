@@ -122,7 +122,7 @@ func (a *Request) Error(code int, error error){
 	res = response_error{
 		Error: list{"request": error.Error()},
 	}
-	a.write_body(res)
+	a.write_JSON(res)
 }
 
 func (a *Request) Header(key string, value string){
@@ -134,19 +134,12 @@ func (a *Request) Header(key string, value string){
 
 func (a *Request) Response_JSON(code int, res response){
 	a.write_header(code)
-	a.write_body(res)
+	a.write_JSON(res)
 }
 
 func (a *Request) Response(code int, res string){
 	a.write_header(code)
-	
-	if a.accept_gzip {
-		gz := gzip.NewWriter(a.w)
-		defer gz.Close()
-		gz.Write([]byte(res))
-	}else{
-		a.w.Write([]byte(res))
-	}
+	a.write(res)
 }
 
 func (a *Request) write_header(code int){
@@ -164,7 +157,7 @@ func (a *Request) write_header(code int){
 	a.header_sent = true
 }
 
-func (a *Request) write_body(res response){
+func (a *Request) write_JSON(res response){
 	if a.accept_gzip {
 		gz := gzip.NewWriter(a.w)
 		defer gz.Close()
@@ -175,6 +168,16 @@ func (a *Request) write_body(res response){
 		if err := json.MarshalWrite(a.w, res); err != nil {
 			panic("API response JSON encode: "+err.Error())
 		}
+	}
+}
+
+func (a *Request) write(res string){
+	if a.accept_gzip {
+		gz := gzip.NewWriter(a.w)
+		defer gz.Close()
+		gz.Write([]byte(res))
+	}else{
+		a.w.Write([]byte(res))
 	}
 }
 
