@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"context"
 	"net/http"
 	"runtime/debug"
 	"compress/gzip"
@@ -21,6 +22,8 @@ const (
 	
 	ACCEPT_ENCODING 	= "Accept-Encoding"
 	ENCODING_GZIP 		= "gzip"
+	
+	CTX_API 	ctx_key = ""
 )
 
 type (
@@ -38,8 +41,10 @@ type (
 	body 	map[string]interface{}
 	
 	response_error struct {
-		Error 	list 			`json:"error"`
+		Error 	list 	`json:"error"`
 	}
+	
+	ctx_key 			string
 	
 	/*response_result struct {
 		Result 	[]interface{} 	`json:"result"`
@@ -62,6 +67,14 @@ func (a *Request) Recover(){
 		a.Error(http.StatusBadRequest, errors.New("Unexpected error"))
 		log.Println(r, "\n"+string(debug.Stack()))
 	}
+}
+
+func (a *Request) Wrap_ctx() *http.Request {
+	return a.r.WithContext(context.WithValue(a.r.Context(), CTX_API, a))
+}
+
+func Wrap_get_api(r *http.Request) *Request {
+	return r.Context().Value(CTX_API).(*Request)
 }
 
 func (a *Request) Auth() (code int, error error){
@@ -110,6 +123,7 @@ func (a *Request) Error(code int, error error){
 	}
 	
 	a.w.WriteHeader(code)
+	//a.write_header(code)
 	a.w.Write(b)
 }
 

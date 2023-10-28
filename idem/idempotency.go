@@ -35,6 +35,50 @@ type (
 	}
 )
 
+//	Initiates idempotency
+func Init(r *http.Request, uid string) *Idempotency {
+	if !rdb.Connected() {
+		panic("Redis is not connected")
+	}
+	
+	d := &Idempotency{}
+	
+	//	Check if idempotency key header is provided
+	key := r.Header.Get(IDEM_HEADER_KEY)
+	if key == "" {
+		d.http_code 	= http.StatusNotAcceptable
+		d.error 		= errors.New(fmt.Sprintf("%s header must be provided", IDEM_HEADER_KEY))
+		return d
+	}
+	
+	//	Check if idempotency key value has the right length
+	if len(key) > IDEM_HEADER_LENGTH {
+		d.http_code 	= http.StatusNotAcceptable
+		d.error 		= errors.New(fmt.Sprintf("%s header value must not be longer than %d chars", IDEM_HEADER_KEY, IDEM_HEADER_LENGTH))
+		return d
+	}
+	
+	//	Check if idempotency key is a duplicate and fetch response from cache
+	var ref cache
+	d.hash = fmt.Sprintf(IDEM_HASH, uid, key)
+	rdb.Hgetall(r.Context(), d.hash, &ref)
+	if ref.Http_code != 0 {
+		d.time 		= ref.Time
+		d.http_code = ref.Http_code
+		d.res 		= ref.Res
+	}
+	return d
+}
+
+//	Returns error
+func (d *Idempotency) Error() (int, error) {
+	if d.error == nil {
+		return 0, nil
+	}
+	return d.http_code, d.error
+}
+
+//	Fetch cached response
 func (d *Idempotency) Cache() (int, string, head.Header){
 	if d.http_code != 0 {
 		return d.http_code, d.res, head.Header{
@@ -45,13 +89,7 @@ func (d *Idempotency) Cache() (int, string, head.Header){
 	return 0, "", head.Header{}
 }
 
-func (d *Idempotency) Error() (int, error) {
-	if d.error == nil {
-		return 0, nil
-	}
-	return d.http_code, d.error
-}
-
+//	Cache response with idempotency key as JSON
 func (d *Idempotency) Store_JSON(http_code int, res map[string]interface{}){
 	if !store_http_codes(http_code){
 		return
@@ -64,6 +102,7 @@ func (d *Idempotency) Store_JSON(http_code int, res map[string]interface{}){
 	d.Store(http_code, string(b))
 }
 
+//	Cache response with idempotency key
 func (d *Idempotency) Store(http_code int, res string){
 	if !store_http_codes(http_code){
 		return
@@ -76,40 +115,6 @@ func (d *Idempotency) Store(http_code int, res string){
 	}, IDEM_EXPIRES); err != nil {
 		panic("Could not store idempotency response: "+err.Error())
 	}
-}
-
-func Init(r *http.Request, uid string) *Idempotency {
-	if !rdb.Connected() {
-		panic("Redis is not connected")
-	}
-	
-	d := &Idempotency{}
-	
-	//	Check if header is provided
-	key := r.Header.Get(IDEM_HEADER_KEY)
-	if key == "" {
-		d.http_code 	= http.StatusNotAcceptable
-		d.error 		= errors.New(fmt.Sprintf("%s header must be provided", IDEM_HEADER_KEY))
-		return d
-	}
-	
-	//	Check if value has the right length
-	if len(key) > IDEM_HEADER_LENGTH {
-		d.http_code 	= http.StatusNotAcceptable
-		d.error 		= errors.New(fmt.Sprintf("%s header value must not be longer than %d chars", IDEM_HEADER_KEY, IDEM_HEADER_LENGTH))
-		return d
-	}
-	
-	//	Check if request is duplicate
-	var ref cache
-	d.hash = fmt.Sprintf(IDEM_HASH, uid, key)
-	rdb.Hgetall(r.Context(), d.hash, &ref)
-	if ref.Http_code != 0 {
-		d.time 		= ref.Time
-		d.http_code = ref.Http_code
-		d.res 		= ref.Res
-	}
-	return d
 }
 
 func store_http_codes(http_code int) bool {
