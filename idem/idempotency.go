@@ -78,7 +78,7 @@ func (d *Idempotency) Error() (int, error) {
 	return d.http_code, d.error
 }
 
-//	Fetch cached response
+//	Get cached idempotency response
 func (d *Idempotency) Cache() (int, string, head.Header){
 	if d.http_code != 0 {
 		return d.http_code, d.res, head.Header{
