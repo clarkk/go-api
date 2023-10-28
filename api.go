@@ -37,8 +37,10 @@ type (
 		header 			list
 	}
 	
-	list 	map[string]string
-	body 	map[string]interface{}
+	list 		map[string]string
+	body 		map[string]interface{}
+	
+	response 	interface{}
 	
 	response_error struct {
 		Error 	list 	`json:"error"`
@@ -91,14 +93,14 @@ func (a *Request) Body() body {
 }
 
 func (a *Request) Parse_body(post_limit int64) (int, error){
-	body_bytes, err := serv.Post_limit(a.w, a.r, post_limit)
+	b, err := serv.Post_limit(a.w, a.r, post_limit)
 	if err != nil {
 		return http.StatusRequestEntityTooLarge, errors.New(http.StatusText(http.StatusRequestEntityTooLarge))
 	}
 	
 	switch a.r.Header.Get(CONTENT_TYPE) {
 	case TYPE_JSON:
-		if json.Unmarshal(body_bytes, &a.body) != nil {
+		if json.Unmarshal(b, &a.body) != nil {
 			return http.StatusBadRequest, errors.New(http.StatusText(http.StatusBadRequest))
 		}
 		
@@ -115,16 +117,12 @@ func (a *Request) Parse_body(post_limit int64) (int, error){
 }
 
 func (a *Request) Error(code int, error error){
-	b, err := json.Marshal(response_error{
+	a.write_header(code)
+	var res response
+	res = response_error{
 		Error: list{"request": error.Error()},
-	})
-	if err != nil {
-		panic("API error response JSON encode: "+err.Error())
 	}
-	
-	a.w.WriteHeader(code)
-	//a.write_header(code)
-	a.w.Write(b)
+	a.write_body(res)
 }
 
 func (a *Request) Header(key string, value string){
@@ -134,20 +132,9 @@ func (a *Request) Header(key string, value string){
 	a.header[key] = value
 }
 
-func (a *Request) Response_JSON(code int, res body){
+func (a *Request) Response_JSON(code int, res response){
 	a.write_header(code)
-	
-	if a.accept_gzip {
-		gz := gzip.NewWriter(a.w)
-		defer gz.Close()
-		if err := json.MarshalWrite(gz, res); err != nil {
-			panic("API response JSON encode (gzip): "+err.Error())
-		}
-	}else{
-		if err := json.MarshalWrite(a.w, res); err != nil {
-			panic("API response JSON encode: "+err.Error())
-		}
-	}
+	a.write_body(res)
 }
 
 func (a *Request) Response(code int, res string){
@@ -175,6 +162,20 @@ func (a *Request) write_header(code int){
 	
 	a.w.WriteHeader(code)
 	a.header_sent = true
+}
+
+func (a *Request) write_body(res response){
+	if a.accept_gzip {
+		gz := gzip.NewWriter(a.w)
+		defer gz.Close()
+		if err := json.MarshalWrite(gz, res); err != nil {
+			panic("API response JSON encode (gzip): "+err.Error())
+		}
+	}else{
+		if err := json.MarshalWrite(a.w, res); err != nil {
+			panic("API response JSON encode: "+err.Error())
+		}
+	}
 }
 
 func accept_gzip(r *http.Request) bool {
