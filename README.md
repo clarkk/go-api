@@ -12,6 +12,13 @@ Lightweight API idempotency cache
 Idempotency is a property of certain operations or API requests, which guarantees that performing the operation multiple times will yield the same result as if it was executed only once.
 
 ### Example
+When idempotency is initiated in the request handler the HTTP request must provide a unique `X-Idempotency-Key` value.
+```
+POST /create HTTP/2
+...
+X-Idempotency-Key: a-unique-identifier-for-each-request
+```
+
 ```
 package main
 
