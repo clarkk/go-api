@@ -7,16 +7,16 @@ Lightweight HTTP API middleware to HTTP server
 # go-api/idem
 Lightweight API idempotency cache
 - Caches responses via Redis
-- Ensures that duplicate HTTP POST requests will not create duplicate entries in the database
+- Ensures duplicate HTTP POST requests will not create duplicate entries in the database
 
 Idempotency is a property of certain operations or API requests, which guarantees that performing the operation multiple times will yield the same result as if it was executed only once.
 
 ### Example
-When idempotency is initiated in the request handler the HTTP request must provide a unique `X-Idempotency-Key` header value.
+When idempotency is initiated the HTTP request must provide a unique `Idempotency-Key` header value.
 ```
 POST /create HTTP/2
 ...
-X-Idempotency-Key: a-unique-identifier-for-each-request
+Idempotency-Key: a-unique-identifier-for-each-request
 ```
 
 ```
