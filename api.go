@@ -79,11 +79,11 @@ func (a *Request) Recover(){
 	}
 }
 
-func (a *Request) Wrap_ctx() *http.Request {
+func (a *Request) Wrap() *http.Request {
 	return a.r.WithContext(context.WithValue(a.r.Context(), CTX_API, a))
 }
 
-func Wrap_api(r *http.Request) *Request {
+func Wrapped(r *http.Request) *Request {
 	return r.Context().Value(CTX_API).(*Request)
 }
 

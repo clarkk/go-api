@@ -2,10 +2,10 @@
 `go get -u github.com/clarkk/go-api`
 
 # go-api
-Lightweight HTTP API middleware to HTTP server
+Lightweight JSON API middleware to HTTP server
 
 # go-api/idem
-Lightweight API idempotency cache
+Lightweight API idempotency cache (width Redis)
 - Caches responses via Redis
 - Ensures duplicate HTTP POST requests will not create duplicate entries in the database
 
@@ -97,7 +97,7 @@ func wrap_api(h http.HandlerFunc) http.HandlerFunc {
     }
     
     //  Serve the wrapped handler
-    h.ServeHTTP(w, a.Wrap_ctx())
+    h.ServeHTTP(w, a.Wrap())
   })
 }
 
@@ -106,7 +106,7 @@ func main(){
   
   h.Route_regex(serv.GET, "/get/([^/]+)", TIMEOUT, wrap_api(func(w http.ResponseWriter, r *http.Request){
     //  Fetch the API from wrapper
-    a := api.Wrap_api(r)
+    a := api.Wrapped(r)
     
     table := serv.Get_pattern_slug(r, 0)
     
