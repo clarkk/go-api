@@ -24,6 +24,7 @@ package main
 
 import (
   "net/http"
+  "github.com/clarkk/go-api"
   "github.com/clarkk/go-api/idem"
   "github.com/clarkk/go-util/rdb"
   "github.com/clarkk/go-util/serv"
@@ -90,6 +91,10 @@ func wrap_api(h http.HandlerFunc) http.HandlerFunc {
     defer a.Recover()
     
     //  Verify authentication here
+    if err := do_some_authentication(); err != nil {
+      a.Error(http.StatusUnauthorized, err)
+      return
+    }
     
     //  Serve the wrapped handler
     h.ServeHTTP(w, a.Wrap_ctx())
@@ -100,7 +105,7 @@ func main(){
   h := serv.NewHTTP("127.0.0.1", 3000)
   
   h.Route_regex(serv.GET, "/get/([^/]+)", TIMEOUT, wrap_api(func(w http.ResponseWriter, r *http.Request){
-    //  Fetch the API from the wrapper
+    //  Fetch the API from wrapper
     a := api.Wrap_api(r)
     
     table := serv.Get_pattern_slug(r, 0)
