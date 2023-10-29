@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"context"
@@ -23,11 +22,14 @@ const (
 	ACCEPT_ENCODING 	= "Accept-Encoding"
 	ENCODING_GZIP 		= "gzip"
 	
+	VERSION 			= "Version"
+	
 	CTX_API 	ctx_key = ""
 )
 
 type (
 	Request struct {
+		Auth 			Auth_store
 		w 				http.ResponseWriter
 		r 				*http.Request
 		accept_gzip 	bool
@@ -37,20 +39,26 @@ type (
 		header 			list
 	}
 	
+	Auth_method interface {
+		Verify(*http.Request) (Auth_store, error)
+	}
+	
+	Auth_store interface {
+		ID() string
+	}
+	
 	list 		map[string]string
 	body 		map[string]interface{}
-	
-	response 	interface{}
 	
 	response_error struct {
 		Error 	list 	`json:"error"`
 	}
 	
-	ctx_key 			string
-	
 	/*response_result struct {
 		Result 	[]interface{} 	`json:"result"`
 	}*/
+	
+	ctx_key 			string
 )
 
 func NewRequest(w http.ResponseWriter, r *http.Request) *Request{
@@ -79,19 +87,29 @@ func Wrap_get_api(r *http.Request) *Request {
 	return r.Context().Value(CTX_API).(*Request)
 }
 
-func (a *Request) Auth() (code int, error error){
-	key := a.r.Header.Get("X-Key")
-	hash := a.r.Header.Get("X-Hash")
-	fmt.Println("key:", key)
-	fmt.Println("hash:", hash)
-	
+func (a *Request) GZIP() bool {
+	return a.accept_gzip
+}
+
+func (a *Request) Version() string {
+	return a.r.Header.Get(VERSION)
+}
+
+func (a *Request) Auth_method(method Auth_method) (code int, error error){
+	auth, err := method.Verify(a.r)
+	if err != nil {
+		return http.StatusUnauthorized, err
+	}
+	a.Auth = auth
 	return 0, nil
 }
 
+//	Get parsed request POST body
 func (a *Request) Body() body {
 	return a.body
 }
 
+//	Parse request POST body
 func (a *Request) Parse_body(post_limit int64) (int, error){
 	b, err := serv.Post_limit(a.w, a.r, post_limit)
 	if err != nil {
@@ -116,15 +134,16 @@ func (a *Request) Parse_body(post_limit int64) (int, error){
 	return 0, nil
 }
 
+//	Error JSON response
 func (a *Request) Error(code int, error error){
 	a.write_header(code)
-	var res response
-	res = response_error{
+	res := response_error{
 		Error: list{"request": error.Error()},
 	}
 	a.write_JSON(res)
 }
 
+//	Set header
 func (a *Request) Header(key string, value string){
 	if a.header_sent {
 		panic("Header already sent. Can not set header: "+key)
@@ -132,16 +151,19 @@ func (a *Request) Header(key string, value string){
 	a.header[key] = value
 }
 
-func (a *Request) Response_JSON(code int, res response){
+//	Send JSON response (encode output)
+func (a *Request) Response_JSON(code int, res interface{}){
 	a.write_header(code)
 	a.write_JSON(res)
 }
 
+//	Send JSON response (output pre-encoded)
 func (a *Request) Response(code int, res string){
 	a.write_header(code)
 	a.write(res)
 }
 
+//	Close header and send
 func (a *Request) write_header(code int){
 	a.Header(CONTENT_TYPE, TYPE_JSON)
 	if a.accept_gzip {
@@ -157,7 +179,8 @@ func (a *Request) write_header(code int){
 	a.header_sent = true
 }
 
-func (a *Request) write_JSON(res response){
+//	Write JSON response
+func (a *Request) write_JSON(res interface{}){
 	if a.accept_gzip {
 		gz := gzip.NewWriter(a.w)
 		defer gz.Close()
@@ -171,6 +194,7 @@ func (a *Request) write_JSON(res response){
 	}
 }
 
+//	Write response
 func (a *Request) write(res string){
 	if a.accept_gzip {
 		gz := gzip.NewWriter(a.w)

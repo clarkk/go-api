@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	IDEM_HEADER_KEY 	= "X-Idempotency-Key"
-	IDEM_HEADER_CACHED 	= "X-Idempotency-Key-Cached"
+	IDEM_HEADER_KEY 	= "Idempotency-Key"
+	IDEM_HEADER_CACHED 	= "Idempotency-Key-Cached"
 	IDEM_HEADER_LENGTH 	= 40
 	IDEM_EXPIRES 		= 60 * 60 * 24
 	IDEM_HASH 			= "API-IDEM:%s:%s"
@@ -47,14 +47,14 @@ func Init(r *http.Request, uid string) *Idempotency {
 	key := r.Header.Get(IDEM_HEADER_KEY)
 	if key == "" {
 		d.http_code 	= http.StatusNotAcceptable
-		d.error 		= errors.New(fmt.Sprintf("%s header must be provided", IDEM_HEADER_KEY))
+		d.error 		= errors.New(fmt.Sprintf("%s header required", IDEM_HEADER_KEY))
 		return d
 	}
 	
 	//	Check if idempotency key value has the right length
 	if len(key) > IDEM_HEADER_LENGTH {
 		d.http_code 	= http.StatusNotAcceptable
-		d.error 		= errors.New(fmt.Sprintf("%s header value must not be longer than %d chars", IDEM_HEADER_KEY, IDEM_HEADER_LENGTH))
+		d.error 		= errors.New(fmt.Sprintf("%s header value can not be longer than %d chars", IDEM_HEADER_KEY, IDEM_HEADER_LENGTH))
 		return d
 	}
 	
