@@ -83,7 +83,7 @@ func (a *Request) Wrap_ctx() *http.Request {
 	return a.r.WithContext(context.WithValue(a.r.Context(), CTX_API, a))
 }
 
-func Wrap_get_api(r *http.Request) *Request {
+func Wrap_api(r *http.Request) *Request {
 	return r.Context().Value(CTX_API).(*Request)
 }
 
@@ -152,13 +152,19 @@ func (a *Request) Header(key string, value string){
 }
 
 //	Send JSON response (encode output)
-func (a *Request) Response_JSON(code int, res interface{}){
-	a.write_header(code)
+func (a *Request) Response_JSON(res interface{}){
+	a.write_header(http.StatusOK)
 	a.write_JSON(res)
 }
 
 //	Send JSON response (output pre-encoded)
-func (a *Request) Response(code int, res string){
+func (a *Request) Response(res string){
+	a.write_header(http.StatusOK)
+	a.write(res)
+}
+
+//	Send JSON response with custom HTTP status (output pre-encoded)
+func (a *Request) Response_code(code int, res string){
 	a.write_header(code)
 	a.write(res)
 }
