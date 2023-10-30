@@ -24,7 +24,7 @@ const (
 	
 	VERSION 			= "Version"
 	
-	CTX_API 	ctx_key = ""
+	CTX_API ctx_key 	= ""
 )
 
 type (
@@ -58,7 +58,7 @@ type (
 		Result 	[]interface{} 	`json:"result"`
 	}*/
 	
-	ctx_key 			string
+	ctx_key 	string
 )
 
 func NewRequest(w http.ResponseWriter, r *http.Request) *Request{
@@ -79,15 +79,17 @@ func (a *Request) Recover(){
 	}
 }
 
-func (a *Request) Wrap() *http.Request {
+//	Apply api to request context
+func (a *Request) Apply() *http.Request {
 	return a.r.WithContext(context.WithValue(a.r.Context(), CTX_API, a))
 }
 
-func Wrapped(r *http.Request) *Request {
+//	Fetch applied api from request context
+func Applied(r *http.Request) *Request {
 	return r.Context().Value(CTX_API).(*Request)
 }
 
-func (a *Request) GZIP() bool {
+func (a *Request) GZIP_accepted() bool {
 	return a.accept_gzip
 }
 
