@@ -139,6 +139,9 @@ func (a *Request) Parse_body(post_limit int64) (int, error){
 //	Error JSON response
 func (a *Request) Error(code int, error error){
 	a.write_header(code)
+	if error != nil {
+		error = errors.New(http.StatusText(code))
+	}
 	res := response_error{
 		Error: list{"request": error.Error()},
 	}
