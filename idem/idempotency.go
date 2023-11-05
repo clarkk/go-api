@@ -90,7 +90,7 @@ func (d *Idempotency) Cache() (int, string, head.Header){
 }
 
 //	Cache response with idempotency key as JSON
-func (d *Idempotency) Store_JSON(http_code int, res map[string]interface{}){
+func (d *Idempotency) Store_JSON(http_code int, res map[string]any){
 	if !store_http_codes(http_code){
 		return
 	}

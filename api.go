@@ -48,14 +48,14 @@ type (
 	}
 	
 	list 		map[string]string
-	body 		map[string]interface{}
+	body 		map[string]any
 	
 	response_error struct {
 		Error 	list 	`json:"error"`
 	}
 	
 	/*response_result struct {
-		Result 	[]interface{} 	`json:"result"`
+		Result 	[]any 	`json:"result"`
 	}*/
 	
 	ctx_key 	string
@@ -156,7 +156,7 @@ func (a *Request) Header(key string, value string){
 }
 
 //	Send JSON response (encode output)
-func (a *Request) Response_JSON(res interface{}){
+func (a *Request) Response_JSON(res any){
 	a.write_header(http.StatusOK)
 	a.write_JSON(res)
 }
@@ -190,7 +190,7 @@ func (a *Request) write_header(code int){
 }
 
 //	Write JSON response
-func (a *Request) write_JSON(res interface{}){
+func (a *Request) write_JSON(res any){
 	if a.accept_gzip {
 		gz := gzip.NewWriter(a.w)
 		defer gz.Close()
