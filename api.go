@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"context"
@@ -115,22 +116,22 @@ func (a *Request) Body() body {
 func (a *Request) Parse_body(post_limit int64) (int, error){
 	b, err := serv.Post_limit(a.w, a.r, post_limit)
 	if err != nil {
-		return http.StatusRequestEntityTooLarge, errors.New(http.StatusText(http.StatusRequestEntityTooLarge))
+		return http.StatusRequestEntityTooLarge, fmt.Errorf(http.StatusText(http.StatusRequestEntityTooLarge))
 	}
 	
 	switch a.r.Header.Get(CONTENT_TYPE) {
 	case TYPE_JSON:
 		if json.Unmarshal(b, &a.body) != nil {
-			return http.StatusBadRequest, errors.New(http.StatusText(http.StatusBadRequest))
+			return http.StatusBadRequest, fmt.Errorf(http.StatusText(http.StatusBadRequest))
 		}
 		
 	/*case TYPE_FORM_DATA:
 		if a.r.ParseForm() != nil {
-			return http.StatusBadRequest, errors.New(http.StatusText(http.StatusBadRequest))
+			return http.StatusBadRequest, fmt.Errorf(http.StatusText(http.StatusBadRequest))
 		}*/
 		
 	default:
-		return http.StatusUnsupportedMediaType, errors.New("POST format not supported")
+		return http.StatusUnsupportedMediaType, fmt.Errorf("POST format not supported")
 	}
 	
 	return 0, nil
@@ -139,7 +140,7 @@ func (a *Request) Parse_body(post_limit int64) (int, error){
 //	Error JSON response
 func (a *Request) Error(code int, error error){
 	if error == nil {
-		error = errors.New(http.StatusText(code))
+		error = fmt.Errorf(http.StatusText(code))
 	}
 	a.write_header(code)
 	a.write_JSON(response_error{

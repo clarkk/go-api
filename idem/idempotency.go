@@ -5,7 +5,7 @@ import (
 	"time"
 	"context"
 	"net/http"
-	"github.com/go-errors/errors"
+	//"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-util/rdb"
@@ -47,14 +47,14 @@ func Init(r *http.Request, uid string) *Idempotency {
 	key := r.Header.Get(IDEM_HEADER_KEY)
 	if key == "" {
 		d.http_code 	= http.StatusNotAcceptable
-		d.error 		= errors.New(fmt.Sprintf("%s header required", IDEM_HEADER_KEY))
+		d.error 		= fmt.Errorf("%s header required", IDEM_HEADER_KEY)
 		return d
 	}
 	
 	//	Check if idempotency key value has the right length
 	if len(key) > IDEM_HEADER_LENGTH {
 		d.http_code 	= http.StatusNotAcceptable
-		d.error 		= errors.New(fmt.Sprintf("%s header value can not be longer than %d chars", IDEM_HEADER_KEY, IDEM_HEADER_LENGTH))
+		d.error 		= fmt.Errorf("%s header value can not be longer than %d chars", IDEM_HEADER_KEY, IDEM_HEADER_LENGTH)
 		return d
 	}
 	
