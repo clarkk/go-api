@@ -6,7 +6,6 @@ import (
 	"strings"
 	"context"
 	"net/http"
-	"runtime/debug"
 	"compress/gzip"
 	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
@@ -75,8 +74,8 @@ func NewRequest(w http.ResponseWriter, r *http.Request) *Request{
 
 func (a *Request) Recover(){
 	if r := recover(); r != nil {
-		a.Error(http.StatusBadRequest, errors.New("Unexpected error"))
-		log.Println(r, "\n"+string(debug.Stack()))
+		a.Error(http.StatusBadRequest, fmt.Errorf("Unexpected error"))
+		log.Println(errors.Wrap(r, 2).ErrorStack())
 	}
 }
 
