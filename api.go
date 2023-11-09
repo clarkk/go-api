@@ -73,9 +73,9 @@ func NewRequest(w http.ResponseWriter, r *http.Request) *Request{
 }
 
 func (a *Request) Recover(){
-	if r := recover(); r != nil {
+	if err := recover(); err != nil {
 		a.Error(http.StatusBadRequest, fmt.Errorf("Unexpected error"))
-		log.Println(errors.Wrap(r, 2).ErrorStack())
+		log.Println(errors.Wrap(err, 2).ErrorStack())
 	}
 }
 
