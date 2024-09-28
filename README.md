@@ -84,14 +84,14 @@ It therefore only makes sense to implement idempotency on writing operations and
 When idempotency is initiated in a HTTP handler a `Idempotency-Key` header with a unique identifier (e.g. `ULID` or `UUID`) is required to request the resource.
 If the HTTP response returns a cached result the `Idempotency-Key-Cached` header contains the cached timestamp.
 
-#### HTTP request
+## HTTP request
 ```
 POST /create HTTP/2
 ...
 Idempotency-Key: a-unique-identifier-for-each-request
 ```
 
-#### HTTP server
+## HTTP server
 ```
 package main
 
