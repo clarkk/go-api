@@ -115,7 +115,7 @@ func (a *Request) Request_JSON_slice(post_limit int) ([]any, error){
 }
 
 //	Set header
-func (a *Request) Header(key string, value string){
+func (a *Request) Header(key, value string){
 	if a.header_sent {
 		panic("Header already sent. Can not set header: "+key)
 	}
