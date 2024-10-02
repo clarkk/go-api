@@ -16,7 +16,6 @@ import (
 
 type (
 	Request struct {
-		//Auth 			Auth_store
 		w 				http.ResponseWriter
 		r 				*http.Request
 		
@@ -28,21 +27,18 @@ type (
 	}
 	
 	Response_result struct {
-		Result			any 	`json:"result"`
+		Result			any 		`json:"result"`
 	}
 	
-	List 			map[string]string
-	
-	/*Auth_method interface {
-		Verify(*http.Request) (Auth_store, error)
-	}*/
-	
-	/*Auth_store interface {
-		ID() string
-	}*/
+	List map[string]string
 	
 	response_error struct {
-		Error 			List	`json:"error"`
+		Error 			List		`json:"error"`
+	}
+	
+	response_bulk_errors struct {
+		Errors 			[]*List		`json:"errors,omitempty"`
+		Semantic_errors []*string	`json:"semantic_errors,omitempty"`
 	}
 )
 
@@ -63,15 +59,6 @@ func (a *Request) Recover(){
 		log.Println(errors.Wrap(err, 2).ErrorStack())
 	}
 }
-
-/*func (a *Request) Auth_method(method Auth_method) (code int, error error){
-	auth, err := method.Verify(a.r)
-	if err != nil {
-		return http.StatusUnauthorized, err
-	}
-	a.Auth = auth
-	return 0, nil
-}*/
 
 //	Get request context
 func (a *Request) Request_context() context.Context {
@@ -104,14 +91,44 @@ func (a *Request) Request(post_limit int) ([]byte, error){
 
 //	Parse request POST body as JSON
 func (a *Request) Request_JSON(post_limit int, input any) error {
-	return a.request_JSON(post_limit, input, false)
+	b, err := a.request_JSON(post_limit)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(b, input, json.RejectUnknownMembers(true)); err != nil {
+		var serr *json.SemanticError
+		if errors.As(err, &serr) {
+			err = parse_unmarshal_json_error(serr, b, input)
+			a.Error(http.StatusBadRequest, err)
+			return err
+		}
+		a.Errorf(http.StatusBadRequest, "Unable to unmarshal JSON")
+		return err
+	}
+	return nil
 }
 
 //	Parse request POST body as JSON array
-func (a *Request) Request_JSON_slice(post_limit int) ([]any, error){
-	input := []any{}
-	err := a.request_JSON(post_limit, &input, true)
-	return input, err
+func (a *Request) Request_JSON_slice(post_limit int, input any) (error, []error, bool){
+	b, err := a.request_JSON(post_limit)
+	if err != nil {
+		return err, nil, false
+	}
+	if err := json.Unmarshal(b, input, json.RejectUnknownMembers(true)); err != nil {
+		var serr *json.SemanticError
+		if errors.As(err, &serr) {
+			err, slice_errs := parse_unmarshal_json_slice_error(serr, b, input)
+			if err != nil {
+				a.Error(http.StatusBadRequest, err)
+			} else {
+				a.Bulk_semantic_errors(http.StatusBadRequest, slice_errs)
+			}
+			return err, slice_errs, false
+		}
+		a.Errorf(http.StatusBadRequest, "Unable to unmarshal JSON")
+		return err, nil, false
+	}
+	return nil, nil, true
 }
 
 //	Set header
@@ -174,44 +191,64 @@ func (a *Request) Errors(code int, errs map[string]error){
 	})
 }
 
-func (a *Request) request_JSON(post_limit int, input any, root_slice bool) error {
+//	Errors JSON response
+func (a *Request) Bulk_errors(code int, bulk_errors []map[string]error){
+	if !a.header_sent {
+		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
+		a.write_header(code)
+	} else {
+		//	TODO: handle panics/errors AFTER headers are sent
+	}
+	bulk := make([]*List, len(bulk_errors))
+	for i, errs := range bulk_errors {
+		if errs != nil {
+			l := List{}
+			for key, err := range errs {
+				l[key] = err.Error()
+			}
+			bulk[i] = &l
+		}
+	}
+	a.write_JSON(response_bulk_errors{
+		Errors: bulk,
+	})
+}
+
+//	Errors JSON response
+func (a *Request) Bulk_semantic_errors(code int, bulk_errors []error){
+	if !a.header_sent {
+		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
+		a.write_header(code)
+	} else {
+		//	TODO: handle panics/errors AFTER headers are sent
+	}
+	bulk := make([]*string, len(bulk_errors))
+	for i, err := range bulk_errors {
+		if err != nil {
+			s := err.Error()
+			bulk[i] = &s
+		}
+	}
+	a.write_JSON(response_bulk_errors{
+		Semantic_errors: bulk,
+	})
+}
+
+func (a *Request) request_JSON(post_limit int) ([]byte, error){
 	b, err := req.Post_limit_read(a.w, a.r, post_limit)
 	if err != nil {
 		if error_request_too_large(err) {
 			a.Error(http.StatusRequestEntityTooLarge, nil)
-			return err
+			return b, err
 		}
 		a.Errorf(http.StatusInternalServerError, "Unable to read request body")
-		return err
+		return b, err
 	}
 	if !head.Request_JSON(a.r) {
 		a.Error(http.StatusUnsupportedMediaType, nil)
-		return fmt.Errorf("Unsupported media type")
+		return b, fmt.Errorf("Unsupported media type")
 	}
-	if root_slice {
-		if err := json.Unmarshal(b, input); err != nil {
-			var serr *json.SemanticError
-			if errors.As(err, &serr) {
-				err := parse_unmarshal_json_slice_error(serr, b, input)
-				a.Error(http.StatusBadRequest, err)
-				return err
-			}
-			a.Errorf(http.StatusBadRequest, "Unable to unmarshal JSON")
-			return err
-		}
-	} else {
-		if err := json.Unmarshal(b, input, json.RejectUnknownMembers(true)); err != nil {
-			var serr *json.SemanticError
-			if errors.As(err, &serr) {
-				err := parse_unmarshal_json_error(serr, b, input)
-				a.Error(http.StatusBadRequest, err)
-				return err
-			}
-			a.Errorf(http.StatusBadRequest, "Unable to unmarshal JSON")
-			return err
-		}
-	}
-	return nil
+	return b, nil
 }
 
 //	Send header
