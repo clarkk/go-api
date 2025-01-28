@@ -1,0 +1,143 @@
+package invalid_json
+
+import (
+	"fmt"
+	"strings"
+	"reflect"
+	"github.com/go-json-experiment/json"
+	//"github.com/go-json-experiment/json/jsontext"
+)
+
+func Fields(json_serr *json.SemanticError, b []byte, input any) error {
+	body_fields, serr := request_fields(b)
+	if serr != nil {
+		return serr
+	}
+	
+	input_fields, serr := required_fields(input)
+	if serr != nil {
+		return serr
+	}
+	
+	if json_serr.Err != nil {
+		if unknown_fields := unknown_request_fields(body_fields, input_fields); len(unknown_fields) != 0 {
+			return &Semantic_error{"Invalid fields: "+strings.Join(unknown_fields, ", "), json_serr}
+		}
+	} else {
+		serr := invalid_data_type(json_serr, b)
+		if terr := invalid_fields_data_type(input_fields, body_fields); terr != nil {
+			terr.err = serr
+			return terr
+		}
+		if serr != nil {
+			return serr
+		}
+	}
+	
+	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}
+}
+
+func invalid_fields_data_type(input_fields map[string]reflect.Type, body_fields map[string]any) *Type_error {
+	err := &Type_error{}
+	for field, rt := range input_fields {
+		body_field, ok := body_fields[field]
+		if ok {
+			if rt.Kind() == reflect.Pointer {
+				rt = rt.Elem()
+			}
+			if rt != reflect.TypeOf(body_field) {
+				if err.expects == nil {
+					err.expects = map[string]string{}
+				}
+				err.expects[field] = rt.String()
+			}
+		}
+	}
+	if err.expects == nil {
+		return nil
+	}
+	return err
+}
+
+func invalid_data_type(err *json.SemanticError, b []byte) *Semantic_error {
+	switch err.JSONKind {
+	case 'n':
+		return invalid_data_type_error(err, b, "null")
+	case 'f', 't':
+		return invalid_data_type_error(err, b, "bool")
+	case '"':
+		return invalid_data_type_error(err, b, "string")
+	case '0':
+		return invalid_data_type_error(err, b, "number")
+	case '{', '}':
+		return invalid_data_type_error(err, b, "object")
+	case '[', ']':
+		return invalid_data_type_error(err, b, "array")
+	default:
+		return nil
+	}
+}
+
+func invalid_data_type_error(err *json.SemanticError, b []byte, kind string) *Semantic_error {
+	return &Semantic_error{
+		fmt.Sprintf("Invalid JSON type. Expected '%s' but got '%s' (at byte offset %d) after: %s", err.GoType, kind, err.ByteOffset, after_byte_offset(b, err.ByteOffset)),
+		err,
+	}
+}
+
+func request_fields(b []byte) (map[string]any, *Semantic_error){
+	var body any
+	if err := json.Unmarshal(b, &body); err != nil {
+		return nil, &Semantic_error{"Request body must be key-value pairs", err}
+	}
+	fields, ok := body.(map[string]any)
+	if !ok {
+		return nil, &Semantic_error{"Request body must be key-value pairs", nil}
+	}
+	return fields, nil
+}
+
+func required_fields(input any) (map[string]reflect.Type, *Semantic_error){
+	rv := reflect.ValueOf(input)
+	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
+		rv = rv.Elem()
+	}
+	return required_fields_struct(rv)
+}
+
+func required_fields_struct(rv reflect.Value) (map[string]reflect.Type, *Semantic_error){
+	list := map[string]reflect.Type{}
+	if rv.Kind() != reflect.Struct {
+		return nil, &Semantic_error{"Input must be a struct", nil}
+	}
+	rt := rv.Type()
+	for i := 0; i < rt.NumField(); i++ {
+		field := rt.Field(i)
+		field_name := strings.Split(field.Tag.Get("json"), ",")[0]
+		list[field_name] = field.Type
+	}
+	return list, nil
+}
+
+func unknown_request_fields[K comparable, VT any, VR any](target map[K]VT, required map[K]VR) []K {
+	list := []K{}
+	for k := range target {
+		if _, ok := required[k]; !ok {
+			list = append(list, k)
+		}
+	}
+	return list
+}
+
+func byte_offset_error(b []byte, byte_offset int64) string {
+	return fmt.Sprintf("JSON unmarshal error (at byte offset %d) after: %s", byte_offset, after_byte_offset(b, byte_offset))
+}
+
+func after_byte_offset(b []byte, byte_offset int64) string {
+	b = b[byte_offset:]
+	n := 100
+	if n < len(b) {
+		b = append(b[:n], []byte{'.','.','.'}...)
+	}
+	return string(b)
+}
