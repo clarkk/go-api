@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"compress/gzip"
-	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
 )
