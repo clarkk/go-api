@@ -17,10 +17,10 @@ type (
 		Error 		List		`json:"error"`
 	}
 	
-	response_bulk_errors struct {
+	/*response_bulk_errors struct {
 		Errors 		[]*List		`json:"errors,omitempty"`
 		//Semantic_errors []*string	`json:"semantic_errors,omitempty"`
-	}
+	}*/
 	
 	response_writer struct {
 		http.ResponseWriter
@@ -97,6 +97,7 @@ func (a *Request) Errors(code int, errs map[string]error){
 		a.write_header(code)
 	} else {
 		//	TODO: handle panics/errors AFTER headers are sent
+		panic("HTTP header already sent")
 	}
 	bulk := make([]*List, len(bulk_errors))
 	for i, errs := range bulk_errors {
