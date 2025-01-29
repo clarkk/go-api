@@ -11,21 +11,21 @@ import (
 
 type (
 	Response_result struct {
-		Result			any 		`json:"result"`
+		Result		any 		`json:"result"`
 	}
 	
 	response_error struct {
-		Error 			List		`json:"error"`
+		Error 		List		`json:"error"`
 	}
 	
 	response_bulk_errors struct {
-		Errors 			[]*List		`json:"errors,omitempty"`
-		Semantic_errors []*string	`json:"semantic_errors,omitempty"`
+		Errors 		[]*List		`json:"errors,omitempty"`
+		//Semantic_errors []*string	`json:"semantic_errors,omitempty"`
 	}
 	
 	response_writer struct {
 		http.ResponseWriter
-		bytes_sent int
+		bytes_sent 	int
 	}
 )
 
@@ -90,7 +90,7 @@ func (a *Request) Errors(code int, errs map[string]error){
 }
 
 //	Errors JSON response
-func (a *Request) Bulk_errors(code int, bulk_errors []map[string]error){
+/*func (a *Request) Bulk_errors(code int, bulk_errors []map[string]error){
 	if !a.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(code)
@@ -110,10 +110,10 @@ func (a *Request) Bulk_errors(code int, bulk_errors []map[string]error){
 	a.write_JSON(response_bulk_errors{
 		Errors: bulk,
 	})
-}
+}*/
 
 //	Errors JSON response
-func (a *Request) Bulk_semantic_errors(code int, bulk_errors []error){
+/*func (a *Request) Bulk_semantic_errors(code int, bulk_errors []error){
 	if !a.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(code)
@@ -130,7 +130,7 @@ func (a *Request) Bulk_semantic_errors(code int, bulk_errors []error){
 	a.write_JSON(response_bulk_errors{
 		Semantic_errors: bulk,
 	})
-}
+}*/
 
 func (a *Request) Code() int {
 	return a.code
@@ -156,6 +156,7 @@ func (a *Request) write_header(code int){
 
 //	Write JSON response
 func (a *Request) write_JSON(res any){
+	//	Wrap writer to count bytes sent
 	w := &response_writer{
 		ResponseWriter: a.w,
 	}
@@ -163,16 +164,16 @@ func (a *Request) write_JSON(res any){
 		gz := gzip.NewWriter(w)
 		defer gz.Close()
 		if err := json.MarshalWrite(gz, res); err != nil {
-			var serr *json.SemanticError
-			if errors.As(err, &serr) {
-				panic("API response JSON encode (gzip): "+err.Error())
+			switch t := err.(type) {
+			case *json.SemanticError:
+				panic("API response JSON marshal (gzip): "+t.Error())
 			}
 		}
 	} else {
 		if err := json.MarshalWrite(w, res); err != nil {
-			var serr *json.SemanticError
-			if errors.As(err, &serr) {
-				panic("API response JSON encode: "+err.Error())
+			switch t := err.(type) {
+			case *json.SemanticError:
+				panic("API response JSON marshal: "+t.Error())
 			}
 		}
 	}
@@ -184,6 +185,7 @@ func (a *Request) write_JSON(res any){
 
 //	Write response
 func (a *Request) write(res string){
+	//	Wrap writer to count bytes sent
 	w := &response_writer{
 		ResponseWriter: a.w,
 	}

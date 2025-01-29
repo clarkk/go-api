@@ -22,7 +22,7 @@ func Match(a *api.Request, id uint64, m Matcher) bool {
 	if id == 0 {
 		return true
 	}
-	etag_header := a.Request_header("If-Match")
+	etag_header := strip_encapsulation(a.Request_header("If-Match"))
 	if etag_header == "" {
 		return true
 	}
@@ -62,4 +62,8 @@ func (e *etag) Compile() uint32 {
 	crc32q := crc32.MakeTable(0xedb88320)
 	s := strings.Join(e.data, ":")
 	return crc32.Checksum([]byte(s), crc32q)
+}
+
+func strip_encapsulation(s string) string {
+	return strings.Trim(s, `"`)
 }
