@@ -65,6 +65,7 @@ func (a *Request) Error(code int, err error){
 		a.write_header(code)
 	} else {
 		//	TODO: handle panics/errors AFTER headers are sent
+		panic("HTTP header already sent")
 	}
 	a.write_JSON(response_error{
 		Error: List{"request": err.Error()},
@@ -78,6 +79,7 @@ func (a *Request) Errors(code int, errs map[string]error){
 		a.write_header(code)
 	} else {
 		//	TODO: handle panics/errors AFTER headers are sent
+		panic("HTTP header already sent")
 	}
 	list := List{}
 	for key, err := range errs {
