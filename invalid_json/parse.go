@@ -111,7 +111,7 @@ func required_fields_struct(rv reflect.Value) (map[string]reflect.Type, *Semanti
 		return nil, &Semantic_error{"Input must be a struct", nil}
 	}
 	rt := rv.Type()
-	for i := 0; i < rt.NumField(); i++ {
+	for i := range rt.NumField() {
 		field := rt.Field(i)
 		field_name := strings.Split(field.Tag.Get("json"), ",")[0]
 		list[field_name] = field.Type
