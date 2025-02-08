@@ -14,7 +14,7 @@ type (
 	Map 		[]Item
 )
 
-func (m Map) Marshal() ([]byte, error){
+func (m Map) MarshalJSON() ([]byte, error){
 	var b bytes.Buffer
 	b.WriteString("{")
 	for i, kv := range m {
