@@ -44,6 +44,11 @@ func (e *etag) Int(i int) *etag {
 	return e
 }
 
+func (e *etag) Uint64(i uint64) *etag {
+	e.data = append(e.data, strconv.FormatUint(i, 10))
+	return e
+}
+
 func (e *etag) Uint64_ptr(i *uint64) *etag {
 	if i == nil {
 		e.data = append(e.data, "")
