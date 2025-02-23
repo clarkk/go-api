@@ -37,6 +37,10 @@ func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}
 }
 
+func Slice(json_serr *json.SemanticError, b []byte, input any){
+	
+}
+
 func invalid_fields_data_type(input_fields map[string]reflect.Type, body_fields map[string]any) *Type_error {
 	err := &Type_error{}
 	for field, rt := range input_fields {
