@@ -47,6 +47,9 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 	input := rv.Index(0)
 	input_fields := required_fields(input)
 	
+	fmt.Println("input:", input)
+	fmt.Printf("fields: %#v\n", input_fields)
+	
 	has_errors	:= false
 	errs		:= make([]error, len(body_slice))
 	//in			:= input.Interface()
@@ -61,9 +64,9 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 		fmt.Println("b:", i, b, body_fields)
 	}
 	
-	
-	fmt.Println("input:", input, body_slice)
-	fmt.Printf("fields: %#v\n", input_fields)
+	if has_errors {
+		return nil, errs
+	}
 	
 	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}, nil
 }
