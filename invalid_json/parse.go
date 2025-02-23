@@ -15,7 +15,7 @@ func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 	}
 	
 	input_fields := required_fields(input)
-	fmt.Println("fields:", input_fields)
+	
 	if json_serr.Err != nil {
 		if unknown_fields := unknown_request_fields(body_fields, input_fields); len(unknown_fields) != 0 {
 			return &Semantic_error{"Invalid fields: "+strings.Join(unknown_fields, ", "), json_serr}
@@ -45,9 +45,9 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 		panic("Input must be a slice")
 	}
 	input := rv.Index(0)
-	input_fields := required_fields(input)
+	input_fields := required_fields_struct(input)
 	
-	fmt.Printf("fields: %#v\n", input_fields)
+	fmt.Println("fields:", input_fields)
 	for k, v := range input_fields {
 		fmt.Println(k, v)
 	}
