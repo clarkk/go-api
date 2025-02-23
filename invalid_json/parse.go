@@ -47,7 +47,6 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 	input := rv.Index(0)
 	input_fields := required_fields(input)
 	
-	fmt.Println("input:", input)
 	fmt.Printf("fields: %#v\n", input_fields)
 	
 	has_errors	:= false
@@ -61,7 +60,17 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 			continue
 		}
 		
-		fmt.Println("b:", i, b, body_fields)
+		if unknown_fields := unknown_request_fields(body_fields, input_fields); len(unknown_fields) != 0 {
+			has_errors = true
+			errs[i] = &Semantic_error{"Invalid fields: "+strings.Join(unknown_fields, ", "), json_serr}
+			continue
+		}
+		
+		if serr := json.Unmarshal(b, &in, json.RejectUnknownMembers(true)); serr != nil {
+			has_errors = true
+			errs[i] = &Semantic_error{"Undefined error", serr}
+			continue
+		}
 	}
 	
 	if has_errors {
