@@ -42,7 +42,13 @@ func Slice(json_serr *json.SemanticError, b []byte, input any) (error, []error){
 	if serr != nil {
 		return serr, nil
 	}
-	fmt.Println(body_slice)
+	
+	rv := reflect.ValueOf(inputs).Elem()
+	if rv.Kind() != reflect.Slice {
+		panic("Input must be a slice")
+	}
+	input := rv.Index(0)
+	fmt.Println("input:",input)
 	
 	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}, nil
 }
@@ -122,10 +128,10 @@ func required_fields(input any) (map[string]reflect.Type, *Semantic_error){
 	return required_fields_struct(rv)
 }
 
-func required_fields_struct(rv reflect.Value) (map[string]reflect.Type, *Semantic_error){
+func required_fields_struct(rv reflect.Value) map[string]reflect.Type {
 	list := map[string]reflect.Type{}
 	if rv.Kind() != reflect.Struct {
-		return nil, &Semantic_error{"Input must be a struct", nil}
+		panic("Input must be a struct")
 	}
 	rt := rv.Type()
 	for i := range rt.NumField() {
@@ -133,7 +139,7 @@ func required_fields_struct(rv reflect.Value) (map[string]reflect.Type, *Semanti
 		field_name := strings.Split(field.Tag.Get("json"), ",")[0]
 		list[field_name] = field.Type
 	}
-	return list, nil
+	return list
 }
 
 func unknown_request_fields[K comparable, VT any, VR any](target map[K]VT, required map[K]VR) []K {
