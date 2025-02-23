@@ -14,10 +14,7 @@ func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 		return serr
 	}
 	
-	input_fields, serr := required_fields(input)
-	if serr != nil {
-		return serr
-	}
+	input_fields := required_fields(input)
 	
 	if json_serr.Err != nil {
 		if unknown_fields := unknown_request_fields(body_fields, input_fields); len(unknown_fields) != 0 {
