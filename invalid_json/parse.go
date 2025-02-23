@@ -37,7 +37,7 @@ func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}
 }
 
-func Slice(json_serr *json.SemanticError, b []byte, input any){
+func Slice(json_serr *json.SemanticError, b []byte, input any) (error, []error){
 	
 	
 	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}, nil

@@ -131,7 +131,8 @@ func (a *Request) Request_JSON_slice(post_limit int, input any) (int, error, []e
 	if err := json.Unmarshal(b, input, json.RejectUnknownMembers(true)); err != nil {
 		switch t := err.(type) {
 		case *json.SemanticError:
-			invalid_json.Slice(t, b, input)
+			serr, serrs := invalid_json.Slice(t, b, input)
+			fmt.Println("request serr:", serr, serrs)
 			
 			/*err, slice_errs := parse_unmarshal_json_slice_error(t, b, input)
 			if err != nil {
