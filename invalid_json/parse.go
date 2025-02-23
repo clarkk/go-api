@@ -37,13 +37,13 @@ func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}
 }
 
-func Slice(json_serr *json.SemanticError, b []byte, input any) (error, []error){
+func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error){
 	body_slice, serr := request_slice(b)
 	if serr != nil {
 		return serr, nil
 	}
 	
-	rv := reflect.ValueOf(input).Elem()
+	rv := reflect.ValueOf(inputs).Elem()
 	if rv.Kind() != reflect.Slice {
 		panic("Input must be a slice")
 	}
