@@ -149,10 +149,3 @@ func get_request_body_fields(b []byte) (map[string]any, *Semantic_error){
 	}
 	return fields, nil
 }
-
-func get_request_body_slice(b []byte) (body []jsontext.Value, serr *Semantic_error){
-	if err := json.Unmarshal(b, &body); err != nil {
-		serr = &Semantic_error{"Request body must be an array", err}
-	}
-	return
-}

@@ -47,6 +47,8 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 	input := rv.Index(0)
 	input_fields := required_fields(input)
 	
+	
+	fmt.Println("semantic error:", json_serr.Err)
 	fmt.Println("input:", input, body_slice)
 	fmt.Printf("fields: %#v\n", input_fields)
 	
