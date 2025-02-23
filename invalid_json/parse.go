@@ -43,7 +43,7 @@ func Slice(json_serr *json.SemanticError, b []byte, input any) (error, []error){
 		return serr, nil
 	}
 	
-	rv := reflect.ValueOf(inputs).Elem()
+	rv := reflect.ValueOf(input).Elem()
 	if rv.Kind() != reflect.Slice {
 		panic("Input must be a slice")
 	}
