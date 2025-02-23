@@ -120,7 +120,7 @@ func request_slice(b []byte) (body []jsontext.Value, serr *Semantic_error){
 	return
 }
 
-func required_fields(input any) (map[string]reflect.Type, *Semantic_error){
+func required_fields(input any) map[string]reflect.Type {
 	rv := reflect.ValueOf(input)
 	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
 		rv = rv.Elem()
