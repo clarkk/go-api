@@ -49,9 +49,16 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 	
 	has_errors	:= false
 	errs		:= make([]error, len(body_slice))
-	in			:= input.Interface()
+	//in			:= input.Interface()
 	for i, b := range body_slice {
-		fmt.Println("b:", i, b)
+		body_fields, serr := request_fields(b)
+		if serr != nil {
+			has_errors = true
+			errs[i] = serr
+			continue
+		}
+		
+		fmt.Println("b:", i, b, body_fields)
 	}
 	
 	
