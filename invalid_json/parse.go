@@ -5,7 +5,7 @@ import (
 	"strings"
 	"reflect"
 	"github.com/go-json-experiment/json"
-	//"github.com/go-json-experiment/json/jsontext"
+	"github.com/go-json-experiment/json/jsontext"
 )
 
 func Fields(json_serr *json.SemanticError, b []byte, input any) error {
@@ -38,7 +38,11 @@ func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 }
 
 func Slice(json_serr *json.SemanticError, b []byte, input any) (error, []error){
-	
+	body_slice, serr := request_slice(b)
+	if serr != nil {
+		return serr, nil
+	}
+	fmt.Println(body_slice)
 	
 	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}, nil
 }
@@ -101,6 +105,13 @@ func request_fields(b []byte) (map[string]any, *Semantic_error){
 		return nil, &Semantic_error{"Request body must be key-value pairs", nil}
 	}
 	return fields, nil
+}
+
+func request_slice(b []byte) (body []jsontext.Value, serr *Semantic_error){
+	if err := json.Unmarshal(b, &body); err != nil {
+		serr = &Semantic_error{"Request body must be an array", err}
+	}
+	return
 }
 
 func required_fields(input any) (map[string]reflect.Type, *Semantic_error){
