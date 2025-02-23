@@ -64,13 +64,19 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 			continue
 		}
 		
-		if serr := json.Unmarshal(b, &in, json.RejectUnknownMembers(true)); serr != nil {
+		if entry_serr := json.Unmarshal(b, &in, json.RejectUnknownMembers(true)); entry_serr != nil {
 			has_errors = true
-			errs[i] = &Semantic_error{"Undefined error", serr}
+			if serr := invalid_data_type(entry_serr, b); serr != nil {
+				if terr := invalid_fields_data_type(input_fields, body_fields); terr != nil {
+					terr.err = serr
+					errs[i] = terr
+					continue
+				}
+			}
+			
+			errs[i] = &Semantic_error{byte_offset_error(b, entry_serr.ByteOffset), entry_serr}
 			continue
 		}
-		
-		//serr := invalid_data_type(json_serr, b)
 	}
 	
 	if has_errors {
