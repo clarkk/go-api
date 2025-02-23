@@ -45,7 +45,8 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 		panic("Input must be a slice")
 	}
 	input := rv.Index(0)
-	fmt.Println("input:", input, body_slice)
+	input_fields := required_fields(input)
+	fmt.Println("input:", input, body_slice, input_fields)
 	
 	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}, nil
 }
