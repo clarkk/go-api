@@ -69,6 +69,8 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 			errs[i] = &Semantic_error{"Undefined error", serr}
 			continue
 		}
+		
+		//serr := invalid_data_type(json_serr, b)
 	}
 	
 	if has_errors {
