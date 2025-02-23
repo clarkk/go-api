@@ -123,13 +123,13 @@ func (a *Request) Request_JSON_required(post_limit int, input Input) (int, error
 }
 
 //	Parse request POST body as JSON array
-/*func (a *Request) Request_JSON_slice(post_limit int, input any) (error, []error, int){
-	b, err, code := a.request_JSON(post_limit)
+func (a *Request) Request_JSON_slice(post_limit int, input any) (int, error, []error){
+	b, code, err := a.request_JSON(post_limit)
 	if err != nil {
-		return err, nil, code
+		return code, err, nil
 	}
 	if err := json.Unmarshal(b, input, json.RejectUnknownMembers(true)); err != nil {
-		switch t := err.(type) {
+		/*switch t := err.(type) {
 		case *json.SemanticError:
 			err, slice_errs := parse_unmarshal_json_slice_error(t, b, input)
 			if err != nil {
@@ -140,10 +140,10 @@ func (a *Request) Request_JSON_required(post_limit int, input Input) (int, error
 			return err, slice_errs, false
 		}
 		a.Errorf(http.StatusBadRequest, "Unable to unmarshal JSON")
-		return err, nil, false
+		return err, nil, false*/
 	}
-	return nil, nil, 0
-}*/
+	return 0, nil, nil
+}
 
 func (a *Request) request_JSON(post_limit int) ([]byte, int, error){
 	b, code, err := a.Request(post_limit)
