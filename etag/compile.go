@@ -33,10 +33,15 @@ func (e *etag) Uint64(i uint64) *etag {
 
 func (e *etag) Uint64_ptr(i *uint64) *etag {
 	if i == nil {
-		e.data = append(e.data, "")
+		e.data = append(e.data, "\x00")
 	} else {
 		e.data = append(e.data, strconv.FormatUint(*i, 10))
 	}
+	return e
+}
+
+func (e *etag) Float64(f float64) *etag {
+	e.data = append(e.data, strconv.FormatFloat(f, 'f', -1, 64))
 	return e
 }
 
