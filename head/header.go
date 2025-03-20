@@ -9,7 +9,10 @@ import (
 const (
 	CONTENT_TYPE 		= "Content-Type"
 	TYPE_JSON 			= "application/json"
+	TYPE_HTML			= "text/html"
 	//TYPE_FORM_DATA 		= "application/x-www-form-urlencoded"
+	
+	ACCEPT				= "Accept"
 	
 	ACCEPT_ENCODING 	= "Accept-Encoding"
 	CONTENT_ENCODING 	= "Content-Encoding"
@@ -24,7 +27,15 @@ const (
 
 //	Check if a HTTP request is an API call or done via a browser
 func Request_API(r *http.Request) bool {
-	return r.Header.Get(USER_AGENT) == ""
+	if r.Header.Get(USER_AGENT) == "" {
+		return true
+	}
+	for _, v := range strings.Split(r.Header.Get(ACCEPT), ",") {
+		if strings.TrimSpace(v) == TYPE_HTML {
+			return false
+		}
+	}
+	return true
 }
 
 //	Get API version
