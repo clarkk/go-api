@@ -9,7 +9,6 @@ import (
 const (
 	CONTENT_TYPE 		= "Content-Type"
 	TYPE_JSON 			= "application/json"
-	TYPE_HTML			= "text/html"
 	//TYPE_FORM_DATA 		= "application/x-www-form-urlencoded"
 	
 	ACCEPT				= "Accept"
@@ -32,7 +31,7 @@ func Request_API(r *http.Request) bool {
 	}
 	for _, v := range strings.Split(r.Header.Get(ACCEPT), ",") {
 		v = strings.TrimSpace(v)
-		if v == TYPE_HTML || v == "*/*" {
+		if v == "text/html" || v == "*/*" {
 			return false
 		}
 	}
