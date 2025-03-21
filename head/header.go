@@ -31,7 +31,8 @@ func Request_API(r *http.Request) bool {
 		return true
 	}
 	for _, v := range strings.Split(r.Header.Get(ACCEPT), ",") {
-		if strings.TrimSpace(v) == TYPE_HTML {
+		v = strings.TrimSpace(v)
+		if v == TYPE_HTML || v == "*/*" {
 			return false
 		}
 	}
