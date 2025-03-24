@@ -58,8 +58,9 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 //	Recover from panic inside route handler
 func (a *Request) Recover(){
 	if err := recover(); err != nil {
+		context_info := fmt.Sprintf("%s %s", a.r.Method, a.r.URL.String())
 		a.Errorf(http.StatusInternalServerError, "Unexpected error")
-		log.Println(errors.Wrap(err, 2).ErrorStack())
+		log.Println(context_info, errors.Wrap(err, 2).ErrorStack())
 	}
 }
 
