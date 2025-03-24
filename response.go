@@ -11,6 +11,12 @@ import (
 type (
 	Response_result struct {
 		Result		any 		`json:"result"`
+		Limit		Limit		`json:"limit,omitzero"`
+	}
+	
+	Limit struct {
+		Offset		int			`json:"offset"`
+		Limit		int			`json:"limit"`
 	}
 	
 	response_error struct {
