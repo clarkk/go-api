@@ -5,9 +5,10 @@ import "math"
 type Limit struct {
 	Offset		uint32		`json:"offset"`
 	Limit		uint8		`json:"limit"`
+	Count		uint32		`json:"count"`
 }
 
-func (l *Limit) Max(max uint8){
+func (l *Limit) Limit_max(max uint8){
 	l.Limit = min(l.Limit, max)
 	if l.Offset != 0 {
 		f := float64(l.Offset) / float64(l.Limit)
@@ -16,6 +17,10 @@ func (l *Limit) Max(max uint8){
 }
 
 func (l *Limit) Count(count uint32){
-	f := float64(count) / float64(l.Limit)
+	l.Count = count
+}
+
+func (l *Limit) End(){
+	f := float64(l.count) / float64(l.Limit)
 	l.Offset = uint32(math.Floor(f)) * uint32(l.Limit)
 }
