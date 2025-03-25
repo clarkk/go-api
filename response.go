@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"compress/gzip"
 	"github.com/go-json-experiment/json"
@@ -37,7 +38,8 @@ type (
 func (l *Limit) Max(max uint8){
 	l.Limit = min(l.Limit, max)
 	if l.Offset != 0 {
-		
+		f := float64(l.Offset) / float64(l.Limit)
+		l.Offset = uint8(math.Round(f)) * l.Limit
 	}
 }
 
