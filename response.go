@@ -34,9 +34,8 @@ type (
 	}
 )
 
-func (l *Limit) Max(max int) *Limit {
+func (l *Limit) Max(max int){
 	l.Limit = min(l.Limit, max)
-	return l
 }
 
 //	Set header
