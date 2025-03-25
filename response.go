@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"math"
 	"net/http"
 	"compress/gzip"
 	"github.com/go-json-experiment/json"
@@ -13,11 +12,6 @@ type (
 	Response_result struct {
 		Result		any 		`json:"result"`
 		Limit		*Limit		`json:"limit,omitempty"`
-	}
-	
-	Limit struct {
-		Offset		uint32		`json:"offset"`
-		Limit		uint8		`json:"limit"`
 	}
 	
 	response_error struct {
@@ -34,14 +28,6 @@ type (
 		bytes_sent 	int
 	}
 )
-
-func (l *Limit) Max(max uint8){
-	l.Limit = min(l.Limit, max)
-	if l.Offset != 0 {
-		f := float64(l.Offset) / float64(l.Limit)
-		l.Offset = uint32(math.Round(f)) * uint32(l.Limit)
-	}
-}
 
 //	Set header
 func (a *Request) Header(key, value string){
