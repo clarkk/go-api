@@ -5,7 +5,7 @@ import "math"
 type Limit struct {
 	Offset		uint32		`json:"offset"`
 	Limit		uint8		`json:"limit"`
-	Entries		uint32		`json:"count"`
+	Entries		uint32		`json:"entries"`
 }
 
 func (l *Limit) Limit_max(max uint8){
