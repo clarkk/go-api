@@ -21,6 +21,6 @@ func (l *Limit) Count(count uint32){
 }
 
 func (l *Limit) End(){
-	f := float64(l.count) / float64(l.Limit)
+	f := float64(l.Entries) / float64(l.Limit)
 	l.Offset = uint32(math.Floor(f)) * uint32(l.Limit)
 }
