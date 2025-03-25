@@ -11,7 +11,7 @@ import (
 type (
 	Response_result struct {
 		Result		any 		`json:"result"`
-		Limit		Limit		`json:"limit,omitzero"`
+		Limit		*Limit		`json:"limit,omitempty"`
 	}
 	
 	Limit struct {
