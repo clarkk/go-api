@@ -34,6 +34,10 @@ type (
 	}
 )
 
+func (l *Limit) Max(max int){
+	l.Limit = min(l.Limit, max)
+}
+
 //	Set header
 func (a *Request) Header(key, value string){
 	if a.header_sent {
