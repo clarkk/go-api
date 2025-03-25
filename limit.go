@@ -15,6 +15,7 @@ func (l *Limit) Max(max uint8){
 	}
 }
 
-func (l *Limit) Count(){
-	
+func (l *Limit) Count(count uint32){
+	f := float64(count) / float64(l.Limit)
+	l.Offset = uint32(math.Floor(f)) * uint32(l.Limit)
 }
