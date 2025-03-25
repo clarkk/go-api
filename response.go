@@ -15,8 +15,8 @@ type (
 	}
 	
 	Limit struct {
-		Offset		int			`json:"offset"`
-		Limit		int			`json:"limit"`
+		Offset		uint32		`json:"offset"`
+		Limit		uint8		`json:"limit"`
 	}
 	
 	response_error struct {
@@ -34,8 +34,11 @@ type (
 	}
 )
 
-func (l *Limit) Max(max int){
+func (l *Limit) Max(max uint8){
 	l.Limit = min(l.Limit, max)
+	if l.Offset != 0 {
+		
+	}
 }
 
 //	Set header
