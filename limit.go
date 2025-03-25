@@ -5,7 +5,7 @@ import "math"
 type Limit struct {
 	Offset		uint32		`json:"offset"`
 	Limit		uint8		`json:"limit"`
-	Count		uint32		`json:"count"`
+	Entries		uint32		`json:"count"`
 }
 
 func (l *Limit) Limit_max(max uint8){
@@ -17,7 +17,7 @@ func (l *Limit) Limit_max(max uint8){
 }
 
 func (l *Limit) Count(count uint32){
-	l.Count = count
+	l.Entries = count
 }
 
 func (l *Limit) End(){
