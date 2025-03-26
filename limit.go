@@ -18,6 +18,10 @@ func (l *Limit) Limit_max(max uint8){
 
 func (l *Limit) Count(count uint32){
 	l.Entries = count
+	//	Out of range
+	if l.Offset + 1 > count {
+		l.End()
+	}
 }
 
 func (l *Limit) End(){
