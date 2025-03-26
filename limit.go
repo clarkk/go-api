@@ -20,7 +20,7 @@ func (l *Limit) Limit_max(max uint8){
 func (l *Limit) Count(count uint32) bool {
 	l.Entries = count
 	//	Offset out of range
-	if l.Offset + 1 > count {
+	if l.Offset != 0 && l.Offset + 1 > count {
 		return false
 		//	Adjust offset to last page
 		/*f := float64(l.Entries) / float64(l.Limit)
