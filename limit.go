@@ -20,11 +20,7 @@ func (l *Limit) Count(count uint32){
 	l.Entries = count
 	//	Out of range
 	if l.Offset + 1 > count {
-		l.End()
+		f := float64(l.Entries) / float64(l.Limit)
+		l.Offset = uint32(math.Floor(f)) * uint32(l.Limit)
 	}
-}
-
-func (l *Limit) End(){
-	f := float64(l.Entries) / float64(l.Limit)
-	l.Offset = uint32(math.Floor(f)) * uint32(l.Limit)
 }
