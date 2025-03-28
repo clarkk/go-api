@@ -26,6 +26,10 @@ func (e *etag) Int64(i int64) *etag {
 	return e
 }
 
+func (e *etag) Uint32(i uint32) *etag {
+	return e.Uint64(uint64(i))
+}
+
 func (e *etag) Uint64(i uint64) *etag {
 	e.data = append(e.data, strconv.FormatUint(i, 10))
 	return e
