@@ -35,7 +35,7 @@ func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 }
 
 func Map_fields(json_serr *json.SemanticError, b []byte, inputs any) (error, map[string]error){
-	body_map, serr := request_map(b)
+	_/*body_map*/, serr := request_map(b)
 	if serr != nil {
 		return serr, nil
 	}
