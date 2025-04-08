@@ -17,7 +17,7 @@ func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 	input_fields := required_fields(input)
 	
 	if json_serr.Err != nil {
-		if unknown_fields := unknown_request_fields(body_fields, input_fields); len(unknown_fields) != 0 {
+		if unknown_fields := unknown_request_fields(body_fields, input_fields); unknown_fields != nil {
 			return &Semantic_error{"Invalid fields: "+strings.Join(unknown_fields, ", "), json_serr}
 		}
 	} else {
@@ -34,7 +34,23 @@ func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}
 }
 
-func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error){
+func Map_fields(json_serr *json.SemanticError, b []byte, inputs any) (error, map[string]error){
+	body_map, serr := request_map(b)
+	if serr != nil {
+		return serr, nil
+	}
+	
+	rv := reflect.ValueOf(inputs).Elem()
+	if rv.Kind() != reflect.Map {
+		panic("Input must be a map")
+	}
+	
+	//	TODO: add logic to return a readable parse error
+	
+	return &Semantic_error{byte_offset_error(b, json_serr.ByteOffset), json_serr}, nil
+}
+
+func Slice_fields(json_serr *json.SemanticError, b []byte, inputs any) (error, []error){
 	body_slice, serr := request_slice(b)
 	if serr != nil {
 		return serr, nil
@@ -58,7 +74,7 @@ func Slice(json_serr *json.SemanticError, b []byte, inputs any) (error, []error)
 			continue
 		}
 		
-		if unknown_fields := unknown_request_fields(body_fields, input_fields); len(unknown_fields) != 0 {
+		if unknown_fields := unknown_request_fields(body_fields, input_fields); unknown_fields != nil {
 			has_errors = true
 			errs[i] = &Semantic_error{"Invalid fields: "+strings.Join(unknown_fields, ", "), json_serr}
 			continue
@@ -150,6 +166,13 @@ func request_fields(b []byte) (map[string]any, *Semantic_error){
 	return fields, nil
 }
 
+func request_map(b []byte) (body map[string]jsontext.Value, serr *Semantic_error){
+	if err := json.Unmarshal(b, &body); err != nil {
+		serr = &Semantic_error{"Request body must be a map", err}
+	}
+	return
+}
+
 func request_slice(b []byte) (body []jsontext.Value, serr *Semantic_error){
 	if err := json.Unmarshal(b, &body); err != nil {
 		serr = &Semantic_error{"Request body must be an array", err}
@@ -180,7 +203,7 @@ func required_fields_struct(rv reflect.Value) map[string]reflect.Type {
 }
 
 func unknown_request_fields[K comparable, VT any, VR any](target map[K]VT, required map[K]VR) []K {
-	list := []K{}
+	var list []K
 	for k := range target {
 		if _, ok := required[k]; !ok {
 			list = append(list, k)

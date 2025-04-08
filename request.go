@@ -132,7 +132,7 @@ func (a *Request) Request_JSON_slice(post_limit int, input any) (int, error, []e
 	if err := json.Unmarshal(b, input, json.RejectUnknownMembers(true)); err != nil {
 		switch t := err.(type) {
 		case *json.SemanticError:
-			serr, serrs := invalid_json.Slice(t, b, input)
+			serr, serrs := invalid_json.Slice_fields(t, b, input)
 			return http.StatusBadRequest, serr, serrs
 		}
 		return http.StatusBadRequest, fmt.Errorf("Unable to unmarshal JSON"), nil
