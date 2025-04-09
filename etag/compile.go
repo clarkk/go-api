@@ -54,6 +54,15 @@ func (e *etag) String(s string) *etag {
 	return e
 }
 
+func (e *etag) String_ptr(s *string) *etag {
+	if s == nil {
+		e.data = append(e.data, "\x00")
+	} else {
+		e.data = append(e.data, *s)
+	}
+	return e
+}
+
 func (e *etag) Compile() uint32 {
 	crc32q := crc32.MakeTable(0xedb88320)
 	s := strings.Join(e.data, ":")
