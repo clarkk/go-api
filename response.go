@@ -15,7 +15,8 @@ type (
 	}
 	
 	response_error struct {
-		Error 		List		`json:"error"`
+		Error 		List		`json:"error,omitempty"`
+		Warning 	List		`json:"warning,omitempty"`
 	}
 	
 	response_bulk_errors struct {
@@ -88,6 +89,24 @@ func (a *Request) Errors(code int, errs map[string]error){
 	}
 	a.write_JSON(response_error{
 		Error: list,
+	})
+}
+
+//	Warnings JSON response
+func (a *Request) Warnings(code int, errs map[string]error){
+	if !a.header_sent {
+		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
+		a.write_header(code)
+	} else {
+		//	TODO: handle panics/errors AFTER headers are sent
+		panic("HTTP header already sent")
+	}
+	list := List{}
+	for key, err := range errs {
+		list[key] = err.Error()
+	}
+	a.write_JSON(response_error{
+		Warning: list,
 	})
 }
 
