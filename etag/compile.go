@@ -25,7 +25,7 @@ func (e *etag) Int_ptr(i *int) *etag {
 	if i == nil {
 		e.data = append(e.data, "\x00")
 	} else {
-		e.data = append(e.data, strconv.Itoa(i))
+		e.data = append(e.data, strconv.Itoa(*i))
 	}
 	return e
 }
