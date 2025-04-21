@@ -35,6 +35,15 @@ func (e *etag) Int64(i int64) *etag {
 	return e
 }
 
+func (e *etag) Int64_ptr(i *int64) *etag {
+	if i == nil {
+		e.data = append(e.data, "\x00")
+	} else {
+		e.data = append(e.data, strconv.FormatInt(*i, 10))
+	}
+	return e
+}
+
 func (e *etag) Uint32(i uint32) *etag {
 	return e.Uint64(uint64(i))
 }
