@@ -1,7 +1,6 @@
 package api
 
 import (
-	"runtime/debug"
 	"fmt"
 	"net/http"
 	"compress/gzip"
@@ -166,9 +165,6 @@ func (a *Request) Sent() int {
 
 //	Send header
 func (a *Request) write_header(code int){
-	fmt.Println("\t------------------------\n\tSTACKTRACE!!")
-	debug.PrintStack()
-	
 	if a.accept_gzip {
 		a.Header(head.CONTENT_ENCODING, head.ENCODING_GZIP)
 	}

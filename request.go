@@ -11,6 +11,7 @@ import (
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/invalid_json"
+	"github.com/clarkk/go-util/serv"
 	"github.com/clarkk/go-util/serv/req"
 )
 
@@ -58,7 +59,9 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 //	Recover from panic inside route handler
 func (a *Request) Recover(){
 	if err := recover(); err != nil {
-		a.Errorf(http.StatusInternalServerError, "Unexpected error")
+		if !w.(*serv.Writer).Sent_headers() {
+			a.Errorf(http.StatusInternalServerError, "Unexpected error")
+		}
 		context_info := fmt.Sprintf("%s %s", a.r.Method, a.r.URL.String())
 		log.Println(context_info, errors.Wrap(err, 2).ErrorStack())
 	}
