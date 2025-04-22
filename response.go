@@ -166,7 +166,7 @@ func (a *Request) Sent() int {
 
 //	Send header
 func (a *Request) write_header(code int){
-	fmt.Println("\tstacktrace!")
+	fmt.Println("\t------------------------\n\tSTACKTRACE!!")
 	debug.PrintStack()
 	
 	if a.accept_gzip {
