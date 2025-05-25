@@ -1,6 +1,7 @@
 package head
 
 import (
+	"fmt"
 	"time"
 	"strings"
 	"net/http"
@@ -27,9 +28,11 @@ const (
 //	Check if a HTTP request is an API call or done via a browser
 func Request_API(r *http.Request) bool {
 	if r.Header.Get(USER_AGENT) == "" {
+		fmt.Println("user agent empty")
 		return true
 	}
 	for _, v := range strings.Split(r.Header.Get(ACCEPT), ",") {
+		fmt.Println(v)
 		v = strings.TrimSpace(v)
 		if v == "text/html" || v == "*/*" {
 			return false
