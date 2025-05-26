@@ -22,6 +22,8 @@ const (
 	
 	USER_AGENT			= "User-Agent"
 	VERSION 			= "Version"
+	
+	CACHE_CONTROL		= "Cache-Control"
 )
 
 //	Check if a HTTP request is an API call or done via a browser
