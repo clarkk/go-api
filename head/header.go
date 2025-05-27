@@ -2,6 +2,7 @@ package head
 
 import (
 	"time"
+	"strconv"
 	"strings"
 	"net/http"
 )
@@ -54,4 +55,8 @@ func Request_JSON(r *http.Request) bool {
 
 func GMT_unix_time(unix_time int64) string {
 	return strings.Replace(time.Unix(unix_time, 0).Format(time.RFC1123), "UTC", "GMT", 1)
+}
+
+func Response_cache_control(days int) string {
+	return "public, max-age="+strconv.Itoa(60 * 60 * 24 * days)+", immutable"
 }
