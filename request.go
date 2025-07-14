@@ -72,6 +72,11 @@ func (a *Request) Defer(fn func(*Request)){
 	a.deferred = fn
 }
 
+//	Get request
+func (a *Request) Request() *http.Request {
+	return a.r
+}
+
 //	Get request context
 func (a *Request) Request_context() context.Context {
 	return a.r.Context()
