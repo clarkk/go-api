@@ -7,6 +7,7 @@ import (
 	"compress/gzip"
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
+	"github.com/clarkk/go-util/env"
 )
 
 type (
@@ -76,9 +77,9 @@ func (a *Request) Error(code int, err error){
 }
 
 //	Error JSON response and log unexpected error
-func (a *Request) Error_log(code int, err error){
+func (a *Request) Error_log(code int, err error, e *env.Environment){
 	url := a.r.Host+a.r.URL.Path
-	log.Printf("HTTP %d: %s %s %s - Error: %v", code, a.r.Method, url, a.r.URL.RawQuery, err)
+	log.Printf("HTTP %d: %s %s %s - Error: %v - Env: %v", code, a.r.Method, url, a.r.URL.RawQuery, err, e.Data())
 	a.Error(code, nil)
 }
 
