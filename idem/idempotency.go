@@ -71,7 +71,7 @@ func New(a *api.Request, uid string, required bool) (*Idempotency, error){
 	//	Check if idempotency key is a duplicate and fetch response from cache
 	var res cache
 	d.hash = fmt.Sprintf(HASH, uid, d.key, a.Request_URL_path())
-	if err := rdb.Hgetall(a.Request_context(), d.hash, &res); err != nil {
+	if err := rdb.Hgetall(a.Context(), d.hash, &res); err != nil {
 		return nil, err
 	}
 	if res.Http_code != 0 {

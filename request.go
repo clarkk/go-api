@@ -73,7 +73,7 @@ func (a *Request) Defer(fn func(*Request)){
 }
 
 //	Get request context
-func (a *Request) Request_context() context.Context {
+func (a *Request) Context() context.Context {
 	return a.r.Context()
 }
 
