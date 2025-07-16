@@ -77,7 +77,8 @@ func (a *Request) Error(code int, err error){
 
 //	Error JSON response and log unexpected error
 func (a *Request) Error_log(code int, err error){
-	log.Println(fmt.Errorf("HTTP %d %s %s %s - Error: %v", code, a.r.Method, a.r.URL.Path, a.r.URL.RawQuery, err))
+	url := a.r.Host+a.r.URL.Path
+	log.Printf("HTTP %d: %s %s %s - Error: %v", code, a.r.Method, url, a.r.URL.RawQuery, err)
 	a.Error(code, nil)
 }
 
