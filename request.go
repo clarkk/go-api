@@ -3,10 +3,10 @@ package api
 import (
 	"fmt"
 	"log"
+	"path"
 	"context"
 	"strings"
 	"net/http"
-	"path/filepath"
 	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
@@ -84,7 +84,7 @@ func (a *Request) Request_header(name string) string {
 
 //	Get request URL path
 func (a *Request) Request_URL_path() string {
-	return filepath.Clean(a.r.URL.Path)
+	return path.Clean(a.r.URL.Path)
 }
 
 //	Parse request POST body

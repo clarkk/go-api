@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"compress/gzip"
 	"github.com/go-json-experiment/json"
@@ -72,6 +73,12 @@ func (a *Request) Error(code int, err error){
 	a.write_JSON(response_error{
 		Error: List{"request": err.Error()},
 	})
+}
+
+//	Error JSON response and log unexpected error
+func (a *Request) Error_log(code int, err error){
+	log.Println(fmt.Errorf("HTTP %d %s %s %s - Error: %v", code, a.r.Method, a.r.URL.Path, a.r.URL.RawQuery, err))
+	a.Error(code, nil)
 }
 
 //	Errors JSON response
