@@ -64,8 +64,8 @@ func (a *Request) Recover(){
 		if !a.w.(*serv.Writer).Sent_headers() {
 			a.Errorf(http.StatusInternalServerError, "Unexpected error")
 		}
-		context_info := fmt.Sprintf("%s %s", a.r.Method, a.r.URL.String())
-		log.Println(context_info, errors.Wrap(err, 2).ErrorStack())
+		url := a.r.Host+a.r.URL.Path
+		log.Printf("%s %s %s | ERROR: %s | POST: %s", a.r.Method, url, a.r.URL.RawQuery, errors.Wrap(err, 2).ErrorStack(), string(a.body_received))
 	}
 }
 

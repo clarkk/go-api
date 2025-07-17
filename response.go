@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"compress/gzip"
+	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-util/env"
@@ -79,7 +80,7 @@ func (a *Request) Error(code int, err error){
 //	Error JSON response and log unexpected error
 func (a *Request) Error_log(code int, err error, e *env.Environment){
 	url := a.r.Host+a.r.URL.Path
-	log.Printf("HTTP %d: %s %s %s | ERROR: %v | ENV: %v | POST: %s", code, a.r.Method, url, a.r.URL.RawQuery, err, e.Data(), string(a.body_received))
+	log.Printf("HTTP %d: %s %s %s | ERROR: %v | ENV: %v | POST: %s", code, a.r.Method, url, a.r.URL.RawQuery, errors.Wrap(err, 2).ErrorStack(), e.Data(), string(a.body_received))
 	a.Error(code, nil)
 }
 
