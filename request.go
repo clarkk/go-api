@@ -23,6 +23,8 @@ type (
 		handle_gzip		bool
 		accept_gzip 	bool
 		
+		body_received	[]byte
+		
 		code 			int
 		header 			List
 		header_sent 	bool
@@ -89,14 +91,15 @@ func (a *Request) Request_URL_path() string {
 
 //	Parse request POST body
 func (a *Request) Request(post_limit int) ([]byte, int, error){
-	b, err := req.Post_limit_read(a.w, a.r, post_limit)
+	var err error
+	a.body_received, err = req.Post_limit_read(a.w, a.r, post_limit)
 	if err != nil {
 		if error_request_too_large(err) {
 			return nil, http.StatusRequestEntityTooLarge, fmt.Errorf("POST payload too large")
 		}
 		return nil, http.StatusInternalServerError, fmt.Errorf("Unable to read request body")
 	}
-	return b, 0, nil
+	return a.body_received, 0, nil
 }
 
 //	Parse request POST body as JSON
