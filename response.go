@@ -79,7 +79,7 @@ func (a *Request) Error(code int, err error){
 //	Error JSON response and log unexpected error
 func (a *Request) Error_log(code int, err error, e *env.Environment){
 	url := a.r.Host+a.r.URL.Path
-	log.Printf("HTTP %d: %s %s %s - Error: %v - Env: %v - Post: %s", code, a.r.Method, url, a.r.URL.RawQuery, err, e.Data(), string(a.body_received))
+	log.Printf("HTTP %d: %s %s %s | ERROR: %v | ENV: %v | POST: %s", code, a.r.Method, url, a.r.URL.RawQuery, err, e.Data(), string(a.body_received))
 	a.Error(code, nil)
 }
 
