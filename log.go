@@ -31,5 +31,5 @@ func (a *Request) Error_log(code int, err error, e *env.Environment){
 }
 
 func tab_indentation(s string) string {
-	return "\t"+strings.Join(strings.Split(s, "\n"), "\n\t")
+	return strings.Join(strings.Split(s, "\n"), "\n\t")
 }
