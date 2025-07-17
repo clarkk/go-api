@@ -17,7 +17,7 @@ func (a *Request) Error_log(code int, err error, e *env.Environment){
 	} else {
 		env_string = fmt.Sprintf("%v", e.Data())
 	}
-	log.Printf("HTTP %d: %s %s %s\nEnv: %s\nPost payload (%d bytes): %s\n\n%s",
+	log.Printf("HTTP %d: %s %s %s\n\tEnv: %s\n\tPost payload (%d bytes): %s\n\n%s",
 		code,
 		a.r.Method,
 		a.r.Host+a.r.URL.Path,
