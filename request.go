@@ -62,7 +62,7 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 func (a *Request) Recover(){
 	if err := recover(); err != nil {
 		if !a.w.(*serv.Writer).Sent_headers() {
-			a.Errorf(http.StatusInternalServerError, "Unexpected error")
+			a.Errorf(http.StatusInternalServerError, nil)
 		}
 		url := a.r.Host+a.r.URL.Path
 		log.Printf("%s %s %s\nPOST: %s\nERROR: %s", a.r.Method, url, a.r.URL.RawQuery, string(a.body_received), errors.Wrap(err, 2).ErrorStack())
