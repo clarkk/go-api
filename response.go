@@ -2,10 +2,8 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"compress/gzip"
-	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-util/env"
@@ -75,27 +73,6 @@ func (a *Request) Error(code int, err error){
 	a.write_JSON(response_error{
 		Error: List{"request": err.Error()},
 	})
-}
-
-//	Error JSON response and log unexpected error
-func (a *Request) Error_log(code int, err error, e *env.Environment){
-	a.Error(code, nil)
-	var env_string string
-	if e == nil {
-		env_string = "<nil>"
-	} else {
-		env_string = fmt.Sprintf("%v", e.Data())
-	}
-	log.Printf("HTTP %d: %s %s %s\nEnv: %s\nPost payload (%d bytes): %s\n\n%s",
-		code,
-		a.r.Method,
-		a.r.Host+a.r.URL.Path,
-		a.r.URL.RawQuery,
-		env_string,
-		len(a.body_received),
-		string(a.body_received),
-		tab_indentation(errors.Wrap(err, 2).ErrorStack()),
-	)
 }
 
 //	Errors JSON response
@@ -253,8 +230,4 @@ func (r *response_writer) Write(b []byte) (int, error){
 	n, err := r.ResponseWriter.Write(b)
 	r.bytes_sent += n
 	return n, err
-}
-
-func tab_indentation(s string) string {
-	return "\t"+strings.Join(strings.Split(s, "\n"), "\n\t")
 }
