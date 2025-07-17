@@ -65,7 +65,7 @@ func (a *Request) Recover(){
 			a.Errorf(http.StatusInternalServerError, "Unexpected error")
 		}
 		url := a.r.Host+a.r.URL.Path
-		log.Printf("%s %s %s | ERROR: %s | POST: %s", a.r.Method, url, a.r.URL.RawQuery, errors.Wrap(err, 2).ErrorStack(), string(a.body_received))
+		log.Printf("%s %s %s\nPOST: %s\nERROR: %s", a.r.Method, url, a.r.URL.RawQuery, string(a.body_received), errors.Wrap(err, 2).ErrorStack())
 	}
 }
 
