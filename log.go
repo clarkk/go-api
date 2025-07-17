@@ -17,7 +17,7 @@ func (a *Request) Error_log(code int, err error, e *env.Environment){
 	} else {
 		env_string = fmt.Sprintf("%v", e.Data())
 	}
-	log.Printf("HTTP %d: %s %s %s\n\tEnv: %s\n\tPost payload (%d bytes): %s\n\n%s",
+	s := fmt.Sprintf("HTTP %d: %s %s %s\nEnv: %s\nPost payload (%d bytes): %s\n\n%s",
 		code,
 		a.r.Method,
 		a.r.Host+a.r.URL.Path,
@@ -25,8 +25,9 @@ func (a *Request) Error_log(code int, err error, e *env.Environment){
 		env_string,
 		len(a.body_received),
 		string(a.body_received),
-		tab_indentation(errors.Wrap(err, 2).ErrorStack()),
+		errors.Wrap(err, 2).ErrorStack(),
 	)
+	log.Printf(tab_indentation(s))
 }
 
 func tab_indentation(s string) string {
