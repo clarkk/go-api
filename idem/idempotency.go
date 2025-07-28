@@ -13,6 +13,7 @@ import (
 
 const (
 	HEADER_KEY 		= "Idempotency-Key"
+	HEADER_TIME		= "Idempotency-Timestamp"
 	HEADER_REPLAYED	= "Idempotency-Replayed"
 	HEADER_EXPIRY 	= "Idempotency-Expiry"
 	HEADER_LENGTH 	= 40
@@ -69,7 +70,7 @@ func New(a *api.Request, uid string, required bool) (*Idempotency, error){
 		return nil, err
 	}
 	
-	//	Check if idempotency key is a duplicate and fetch response from cache
+	//	Check if idempotency key is a replay and fetch response from cache
 	var res cache
 	d.hash = fmt.Sprintf(HASH, uid, d.key, a.Request_URL_path())
 	if err := rdb.Hgetall(a.Context(), d.hash, &res); err != nil {
@@ -99,9 +100,7 @@ func (d *Idempotency) Cached() bool {
 	if d.http_code == 0 {
 		return false
 	}
-	d.a.Header(HEADER_KEY, d.key)
-	d.a.Header(HEADER_REPLAYED, "true")
-	d.a.Header(HEADER_EXPIRY, head.GMT_unix_time(d.time + EXPIRES))
+	d.headers(true, d.time)
 	d.a.Response(d.http_code, d.content_type, d.res)
 	return true
 }
@@ -113,25 +112,38 @@ func (d *Idempotency) Response_JSON(code int, res any){
 		panic("Idempotency response JSON encode: "+err.Error())
 	}
 	s := string(b)
-	go d.store_redis(code, head.TYPE_JSON, s)
+	if d.store_response(code){
+		t := time_unit()
+		go d.store_redis(code, head.TYPE_JSON, s, t)
+		d.headers(false, t)
+	}
 	d.a.Response(code, head.TYPE_JSON, s)
 }
 
 //	Cache response with idempotency key and send response
 func (d *Idempotency) Response(code int, content_type, res string){
-	go d.store_redis(code, content_type, res)
+	if d.store_response(code){
+		t := time_unit()
+		go d.store_redis(code, content_type, res, t)
+		d.headers(false, t)
+	}
 	d.a.Response(code, content_type, res)
 }
 
-func (d *Idempotency) store_redis(http_code int, content_type, res string){
-	if !d.required && d.key == "" {
-		return
+func (d *Idempotency) headers(replay bool, t int64){
+	d.a.Header(HEADER_KEY, d.key)
+	d.a.Header(HEADER_TIME, head.GMT_unix_time(t))
+	if replay {
+		d.a.Header(HEADER_REPLAYED, "true")
+	} else {
+		d.a.Header(HEADER_REPLAYED, "false")
 	}
-	if !store_http_codes(http_code){
-		return
-	}
+	d.a.Header(HEADER_EXPIRY, head.GMT_unix_time(t + EXPIRES))
+}
+
+func (d *Idempotency) store_redis(http_code int, content_type, res string, t int64){
 	if err := rdb.Hset(context.Background(), d.hash, cache{
-		Time:			time.Now().Unix(),
+		Time:			t,
 		Http_code:		http_code,
 		Content_type:	content_type,
 		Res:			res,
@@ -140,6 +152,13 @@ func (d *Idempotency) store_redis(http_code int, content_type, res string){
 	}
 }
 
-func store_http_codes(http_code int) bool {
+func (d *Idempotency) store_response(http_code int) bool {
+	if !d.required && d.key == "" {
+		return false
+	}
 	return http_code == http.StatusOK
+}
+
+func time_unit() int64 {
+	return time.Now().Unix()
 }
