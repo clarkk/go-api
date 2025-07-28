@@ -32,6 +32,14 @@ func NewLimit(offset, limit int) (*Limit, bool){
 	}, false
 }
 
+func (l *Limit) Offset() uint32 {
+	return l.offset
+}
+
+func (l *Limit) Limit() uint8 {
+	return l.limit
+}
+
 func (l *Limit) Limit_max(max uint8){
 	l.limit = min(l.limit, max)
 }
