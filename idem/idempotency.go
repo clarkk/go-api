@@ -113,7 +113,7 @@ func (d *Idempotency) Response_JSON(code int, res any){
 	}
 	s := string(b)
 	if d.store_response(code){
-		t := time_unit()
+		t := time_unix()
 		go d.store_redis(code, head.TYPE_JSON, s, t)
 		d.headers(false, t)
 	}
@@ -123,7 +123,7 @@ func (d *Idempotency) Response_JSON(code int, res any){
 //	Cache response with idempotency key and send response
 func (d *Idempotency) Response(code int, content_type, res string){
 	if d.store_response(code){
-		t := time_unit()
+		t := time_unix()
 		go d.store_redis(code, content_type, res, t)
 		d.headers(false, t)
 	}
@@ -159,6 +159,6 @@ func (d *Idempotency) store_response(http_code int) bool {
 	return http_code == http.StatusOK
 }
 
-func time_unit() int64 {
+func time_unix() int64 {
 	return time.Now().Unix()
 }
