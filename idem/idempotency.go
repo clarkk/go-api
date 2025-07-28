@@ -13,7 +13,8 @@ import (
 
 const (
 	HEADER_KEY 		= "Idempotency-Key"
-	HEADER_CACHED 	= "Idempotency-Key-Cached"
+	HEADER_REPLAYED	= "Idempotency-Replayed"
+	HEADER_EXPIRY 	= "Idempotency-Expiry"
 	HEADER_LENGTH 	= 40
 	EXPIRES 		= 60 * 60 * 24
 	HASH 			= "API-IDEM:%s:%s:%s"
@@ -98,7 +99,9 @@ func (d *Idempotency) Cached() bool {
 	if d.http_code == 0 {
 		return false
 	}
-	d.a.Header(HEADER_CACHED, head.GMT_unix_time(d.time))
+	d.a.Header(HEADER_KEY, d.key)
+	d.a.Header(HEADER_REPLAYED, "true")
+	d.a.Header(HEADER_EXPIRY, head.GMT_unix_time(d.time + EXPIRES))
 	d.a.Response(d.http_code, d.content_type, d.res)
 	return true
 }
