@@ -5,9 +5,8 @@ import (
 	"strings"
 	"net/http"
 	"github.com/clarkk/go-api"
+	"github.com/clarkk/go-api/head"
 )
-
-const HEADER_IF_MATCH = "If-Match"
 
 type Matcher interface {
 	Match_etag(id uint64, etag_header string) (bool, bool, error)
@@ -18,7 +17,7 @@ func Match(a *api.Request, id uint64, m Matcher) (int, error){
 	if id == 0 {
 		return 0, nil
 	}
-	etag_header := strip_encapsulation(a.Request_header(HEADER_IF_MATCH))
+	etag_header := strip_encapsulation(a.Request_header(head.IF_MATCH))
 	if etag_header == "" {
 		return 0, nil
 	}
@@ -37,8 +36,8 @@ func Match(a *api.Request, id uint64, m Matcher) (int, error){
 
 //	Disallow "If-Match"
 func Disallow_match(a *api.Request) bool {
-	if strip_encapsulation(a.Request_header(HEADER_IF_MATCH)) != "" {
-		a.Errorf(http.StatusPreconditionFailed, "%s header not allowed", HEADER_IF_MATCH)
+	if strip_encapsulation(a.Request_header(head.IF_MATCH)) != "" {
+		a.Errorf(http.StatusPreconditionFailed, "%s header not allowed", head.IF_MATCH)
 		return false
 	}
 	return true

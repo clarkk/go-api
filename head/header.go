@@ -25,6 +25,8 @@ const (
 	VERSION 			= "Version"
 	
 	CACHE_CONTROL		= "Cache-Control"
+	
+	IF_MATCH			= "If-Match"
 )
 
 //	Check if a HTTP request is an API call or done via a browser

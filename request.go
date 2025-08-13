@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
-	"github.com/clarkk/go-api/etag"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/invalid_json"
 	"github.com/clarkk/go-util/hash"
@@ -159,7 +158,7 @@ func (a *Request) Idempotency_hash() (string, error){
 	if header_type := a.r.Header.Get(head.CONTENT_TYPE); header_type != "" {
 		s += ":"+header_type
 	}
-	if header_etag := a.r.Header.Get(etag.HEADER_IF_MATCH); header_etag != "" {
+	if header_etag := a.r.Header.Get(head.IF_MATCH); header_etag != "" {
 		s += ":"+header_etag
 	}
 	return hash.SHA256_hex([]byte(s+":")+b), nil
