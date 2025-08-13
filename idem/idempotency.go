@@ -1,7 +1,6 @@
 package idem
 
 import (
-	"io"
 	"fmt"
 	"time"
 	"context"
@@ -74,6 +73,7 @@ func New(a *api.Request, uid string, required bool) (*Idempotency, error){
 	}
 	
 	//	Generate request hash
+	var err error
 	d.req_hash, err = a.Idempotency_hash()
 	if err != nil {
 		a.Error(http.StatusInternalServerError, nil)
