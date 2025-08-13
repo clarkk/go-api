@@ -1,6 +1,7 @@
 package idem
 
 import (
+	"io"
 	"fmt"
 	"time"
 	"context"
@@ -31,6 +32,7 @@ type (
 		http_code 		int
 		content_type	string
 		res 			string
+		req_hash		string
 	}
 	
 	cache struct {
@@ -38,6 +40,7 @@ type (
 		Http_code 		int 	`redis:"http_code"`
 		Content_type	string	`redis:"content_type"`
 		Res 			string 	`redis:"res"`
+		Req_hash		string	`redis:"req_hash"`
 	}
 )
 
@@ -70,6 +73,13 @@ func New(a *api.Request, uid string, required bool) (*Idempotency, error){
 		return nil, err
 	}
 	
+	//	Generate request hash
+	d.req_hash, err = a.Idempotency_hash()
+	if err != nil {
+		a.Error(http.StatusInternalServerError, nil)
+		return nil, err
+	}
+	
 	//	Check if idempotency key is a replay and fetch response from cache
 	var res cache
 	d.hash = fmt.Sprintf(HASH, uid, d.key, a.Request_URL_path())
@@ -77,6 +87,13 @@ func New(a *api.Request, uid string, required bool) (*Idempotency, error){
 		return nil, err
 	}
 	if res.Http_code != 0 {
+		//	Check if idempotency key has been re-used in another request
+		if d.req_hash != res.Req_hash {
+			err := fmt.Errorf("Idempotency key has been re-used in another request")
+			a.Error(http.StatusConflict, err)
+			return nil, err
+		}
+		
 		d.time 			= res.Time
 		d.http_code 	= res.Http_code
 		d.content_type	= res.Content_type
@@ -147,6 +164,7 @@ func (d *Idempotency) store_redis(http_code int, content_type, res string, t int
 		Http_code:		http_code,
 		Content_type:	content_type,
 		Res:			res,
+		Req_hash:		d.req_hash,
 	}, EXPIRES); err != nil {
 		panic("Could not store idempotency response: "+err.Error())
 	}

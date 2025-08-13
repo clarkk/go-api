@@ -1,16 +1,20 @@
 package api
 
 import (
+	"io"
 	"fmt"
 	"log"
 	"path"
+	"bytes"
 	"context"
 	"strings"
 	"net/http"
 	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
+	"github.com/clarkk/go-api/etag"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/invalid_json"
+	"github.com/clarkk/go-util/hash"
 	"github.com/clarkk/go-util/serv"
 	"github.com/clarkk/go-util/serv/req"
 )
@@ -144,6 +148,32 @@ func (a *Request) Request_JSON_slice(post_limit int, input any) (int, error, []e
 		return http.StatusBadRequest, fmt.Errorf("Unable to unmarshal JSON"), nil
 	}
 	return 0, nil, nil
+}
+
+func (a *Request) Idempotency_hash() (string, error){
+	b, err := a.read_post_reset()
+	if err != nil {
+		return "", err
+	}
+	s := a.r.Method+":"+a.r.RequestURI
+	if header_type := a.r.Header.Get(head.CONTENT_TYPE); header_type != "" {
+		s += ":"+header_type
+	}
+	if header_etag := a.r.Header.Get(etag.HEADER_IF_MATCH); header_etag != "" {
+		s += ":"+header_etag
+	}
+	return hash.SHA256_hex([]byte(s+":")+b), nil
+}
+
+//	Read post payload and reset stream
+func (a *Request) read_post_reset() ([]byte, error){
+	b, err := io.ReadAll(a.r.Body)
+	if err != nil {
+		return nil, err
+	}
+	a.r.Body.Close()
+	a.r.Body = io.NopCloser(bytes.NewReader(b))
+	return b, nil
 }
 
 func (a *Request) request_JSON(post_limit int) ([]byte, int, error){
