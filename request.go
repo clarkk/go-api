@@ -161,7 +161,7 @@ func (a *Request) Idempotency_hash() (string, error){
 	if header_etag := a.r.Header.Get(head.IF_MATCH); header_etag != "" {
 		s += ":"+header_etag
 	}
-	return hash.SHA256_hex([]byte(s+":")+b), nil
+	return hash.SHA256_hex([]byte(s+":"+string(b))), nil
 }
 
 //	Read post payload and reset stream
