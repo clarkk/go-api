@@ -61,14 +61,14 @@ func New(a *api.Request, uid string, required bool) (*Idempotency, error){
 			return d, nil
 		}
 		err := fmt.Errorf("%s header required", HEADER_KEY)
-		a.Error(http.StatusNotAcceptable, err)
+		a.Error(http.StatusBadRequest, err)
 		return nil, err
 	}
 	
 	//	Check if idempotency key value has the right length
 	if len(d.key) > HEADER_LENGTH {
 		err := fmt.Errorf("%s header value can not be longer than %d chars", HEADER_KEY, HEADER_LENGTH)
-		a.Error(http.StatusNotAcceptable, err)
+		a.Error(http.StatusBadRequest, err)
 		return nil, err
 	}
 	
@@ -106,7 +106,7 @@ func New(a *api.Request, uid string, required bool) (*Idempotency, error){
 func Disallow(a *api.Request) bool {
 	//	Check if idempotency key header is provided
 	if a.Request_header(HEADER_KEY) != "" {
-		a.Error(http.StatusNotAcceptable, fmt.Errorf("%s header not allowed", HEADER_KEY))
+		a.Error(http.StatusBadRequest, fmt.Errorf("%s header not allowed", HEADER_KEY))
 		return false
 	}
 	return true
