@@ -81,6 +81,15 @@ func (e *etag) String_ptr(s *string) *etag {
 	return e
 }
 
+func (e *etag) Bool(b bool) *etag {
+	if bool {
+		e.data = append(e.data, "1")
+	} else {
+		e.data = append(e.data, "0")
+	}
+	return e
+}
+
 func (e *etag) Compile() uint32 {
 	crc32q := crc32.MakeTable(0xedb88320)
 	s := strings.Join(e.data, ":")
