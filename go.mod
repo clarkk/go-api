@@ -1,6 +1,6 @@
 module github.com/clarkk/go-api
 
-go 1.24.4
+go 1.25.1
 
 require (
 	github.com/clarkk/go-util v0.0.0-20250716204023-a52843afdf27
