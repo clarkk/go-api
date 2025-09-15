@@ -82,7 +82,7 @@ func (e *etag) String_ptr(s *string) *etag {
 }
 
 func (e *etag) Bool(b bool) *etag {
-	if bool {
+	if b {
 		e.data = append(e.data, "1")
 	} else {
 		e.data = append(e.data, "0")
