@@ -41,10 +41,14 @@ func (m Map_lang) Has(key string) bool {
 }
 
 func (m *Map_lang) String() string {
+	if m == nil {
+		return ""
+	}
+	
 	s := make([]slice, len(*m))
 	var i int
-	for k, v := m {
-		s[i] = k+": "+v
+	for k, v := *m {
+		s[i] = k+": "+v.Key
 		i++
 	}
 	return strings.Join(s, ", ")
