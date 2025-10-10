@@ -1,6 +1,9 @@
 package errin
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type (
 	Map			map[string]error
@@ -35,4 +38,14 @@ func (m *Map_lang) Set(key string, lang *Lang){
 func (m Map_lang) Has(key string) bool {
 	_, ok := m[key]
 	return ok
+}
+
+func (m *Map_lang) String() string {
+	s := make([]slice, len(m))
+	var i int
+	for k, v := m {
+		s[i] = k+": "+v
+		i++
+	}
+	return strings.Join(s, ", ")
 }
