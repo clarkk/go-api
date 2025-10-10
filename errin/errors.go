@@ -45,7 +45,7 @@ func (m *Map_lang) String() string {
 		return ""
 	}
 	
-	s := make([]slice, len(*m))
+	s := make([]string, len(*m))
 	var i int
 	for k, v := range *m {
 		s[i] = k+": "+v.Key
