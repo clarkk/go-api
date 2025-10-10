@@ -44,11 +44,23 @@ func (m *Map_lang) String() string {
 	if m == nil {
 		return ""
 	}
-	
 	s := make([]string, len(*m))
 	var i int
 	for k, v := range *m {
 		s[i] = k+": "+v.Key
+		i++
+	}
+	return strings.Join(s, ", ")
+}
+
+func (m *Map) String() string {
+	if m == nil {
+		return ""
+	}
+	s := make([]string, len(*m))
+	var i int
+	for k, v := range *m {
+		s[i] = k+": "+v.Error()
 		i++
 	}
 	return strings.Join(s, ", ")
