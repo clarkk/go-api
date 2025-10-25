@@ -40,32 +40,32 @@ func (a *Request) Header(key, value string){
 }
 
 //	Send JSON response (encode output)
-func (a *Request) Response_JSON(code int, res any){
+func (a *Request) Response_JSON(status int, res any){
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-	a.write_header(code)
+	a.write_header(status)
 	a.write_JSON(res)
 }
 
 //	Send response
-func (a *Request) Response(code int, content_type, res string){
+func (a *Request) Response(status int, content_type, res string){
 	a.Header(head.CONTENT_TYPE, content_type)
-	a.write_header(code)
+	a.write_header(status)
 	a.write(res)
 }
 
 //	Error JSON response
-func (a *Request) Errorf(code int, s string, args... any){
-	a.Error(code, fmt.Errorf(s, args...))
+func (a *Request) Errorf(status int, s string, args... any){
+	a.Error(status, fmt.Errorf(s, args...))
 }
 
 //	Error JSON response
-func (a *Request) Error(code int, err error){
+func (a *Request) Error(status int, err error){
 	if err == nil {
-		err = fmt.Errorf(http.StatusText(code))
+		err = fmt.Errorf(http.StatusText(status))
 	}
 	if !a.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(code)
+		a.write_header(status)
 	} else {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
@@ -76,10 +76,10 @@ func (a *Request) Error(code int, err error){
 }
 
 //	Errors JSON response
-func (a *Request) Errors(code int, errs map[string]error){
+func (a *Request) Errors(status int, errs map[string]error){
 	if !a.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(code)
+		a.write_header(status)
 	} else {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
@@ -94,10 +94,10 @@ func (a *Request) Errors(code int, errs map[string]error){
 }
 
 //	Warnings JSON response
-func (a *Request) Warnings(code int, errs map[string]error){
+func (a *Request) Warnings(status int, errs map[string]error){
 	if !a.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(code)
+		a.write_header(status)
 	} else {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
@@ -112,10 +112,10 @@ func (a *Request) Warnings(code int, errs map[string]error){
 }
 
 //	Errors JSON response
-func (a *Request) Bulk_errors(code int, bulk_errs []map[string]error){
+func (a *Request) Bulk_errors(status int, bulk_errs []map[string]error){
 	if !a.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(code)
+		a.write_header(status)
 	} else {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
@@ -136,10 +136,10 @@ func (a *Request) Bulk_errors(code int, bulk_errs []map[string]error){
 }
 
 //	Errors JSON response
-func (a *Request) Bulk_semantic_errors(code int, bulk_errs []error){
+func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
 	if !a.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(code)
+		a.write_header(status)
 	} else {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
@@ -156,8 +156,8 @@ func (a *Request) Bulk_semantic_errors(code int, bulk_errs []error){
 	})
 }
 
-func (a *Request) Code() int {
-	return a.code
+func (a *Request) Status() int {
+	return a.w.status
 }
 
 func (a *Request) Sent() int {
@@ -165,7 +165,7 @@ func (a *Request) Sent() int {
 }
 
 //	Send header
-func (a *Request) write_header(code int){
+func (a *Request) write_header(status int){
 	if a.accept_gzip {
 		a.Header(head.CONTENT_ENCODING, head.ENCODING_GZIP)
 	}
@@ -173,8 +173,7 @@ func (a *Request) write_header(code int){
 	for key, value := range a.header {
 		header.Set(key, value)
 	}
-	a.w.WriteHeader(code)
-	a.code 			= code
+	a.w.WriteHeader(status)
 	a.header_sent 	= true
 }
 
@@ -226,9 +225,9 @@ func (a *Request) write(res string){
 	}
 }
 
-func (r *response_writer) WriteHeader(code int){
-	r.status = code
-	r.ResponseWriter.WriteHeader(code)
+func (r *response_writer) WriteHeader(status int){
+	r.status = status
+	r.ResponseWriter.WriteHeader(status)
 }
 
 func (r *response_writer) Write(b []byte) (int, error){
