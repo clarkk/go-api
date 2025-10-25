@@ -172,7 +172,6 @@ func (a *Request) write_header(status int){
 
 //	Write JSON response
 func (a *Request) write_JSON(res any){
-	//	Wrap writer to count bytes sent
 	if a.accept_gzip {
 		gz := gzip.NewWriter(a.w)
 		defer gz.Close()
