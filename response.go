@@ -157,7 +157,7 @@ func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
 }
 
 func (a *Request) Status() int {
-	return a.w.status
+	return a.status
 }
 
 func (a *Request) Sent() int {
@@ -200,7 +200,8 @@ func (a *Request) write_JSON(res any){
 			}
 		}
 	}
-	a.bytes_sent = w.bytes_sent
+	a.status		= w.status
+	a.bytes_sent	= w.bytes_sent
 	if a.deferred != nil {
 		a.deferred(a)
 	}
@@ -219,7 +220,8 @@ func (a *Request) write(res string){
 	} else {
 		w.Write([]byte(res))
 	}
-	a.bytes_sent = w.bytes_sent
+	a.status		= w.status
+	a.bytes_sent	= w.bytes_sent
 	if a.deferred != nil {
 		a.deferred(a)
 	}

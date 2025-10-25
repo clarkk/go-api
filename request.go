@@ -28,7 +28,7 @@ type (
 		
 		body_received	[]byte
 		
-		code 			int
+		status 			int
 		header 			List
 		header_sent 	bool
 		
