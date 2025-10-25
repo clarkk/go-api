@@ -20,7 +20,7 @@ import (
 
 type (
 	Request struct {
-		w 				*response_writer
+		w 				response_writer
 		r 				*http.Request
 		
 		handle_gzip		bool
@@ -52,7 +52,7 @@ func Input_required_error(s []string) error {
 
 func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 	return &Request{
-		w:				&response_writer{ResponseWriter: w},
+		w:				response_writer{ResponseWriter: w},
 		r:				r,
 		handle_gzip:	handle_gzip,
 		accept_gzip:	accept_gzip(r, handle_gzip),
@@ -63,7 +63,7 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 //	Recover from panic inside route handler
 func (a *Request) Recover(){
 	if err := recover(); err != nil {
-		if !a.w.(*serv.Writer).Sent_headers() {
+		if !a.w.header_sent {
 			a.Error(http.StatusInternalServerError, nil)
 		}
 		url := a.r.Host+a.r.URL.Path
