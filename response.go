@@ -28,7 +28,7 @@ type (
 
 //	Set header
 func (a *Request) Header(key, value string){
-	if a.header_sent {
+	if a.w.Sent_headers() {
 		panic("Header already sent. Can not set header: "+key)
 	}
 	a.header[key] = value
@@ -58,7 +58,7 @@ func (a *Request) Error(status int, err error){
 	if err == nil {
 		err = fmt.Errorf(http.StatusText(status))
 	}
-	if !a.header_sent {
+	if !a.w.Sent_headers() {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -72,7 +72,7 @@ func (a *Request) Error(status int, err error){
 
 //	Errors JSON response
 func (a *Request) Errors(status int, errs map[string]error){
-	if !a.header_sent {
+	if !a.w.Sent_headers() {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -90,7 +90,7 @@ func (a *Request) Errors(status int, errs map[string]error){
 
 //	Warnings JSON response
 func (a *Request) Warnings(status int, errs map[string]error){
-	if !a.header_sent {
+	if !a.w.Sent_headers() {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -108,7 +108,7 @@ func (a *Request) Warnings(status int, errs map[string]error){
 
 //	Errors JSON response
 func (a *Request) Bulk_errors(status int, bulk_errs []map[string]error){
-	if !a.header_sent {
+	if !a.w.Sent_headers() {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -132,7 +132,7 @@ func (a *Request) Bulk_errors(status int, bulk_errs []map[string]error){
 
 //	Errors JSON response
 func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
-	if !a.header_sent {
+	if !a.w.Sent_headers() {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -152,11 +152,11 @@ func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
 }
 
 func (a *Request) Status() int {
-	return a.status
+	return a.w.Status()
 }
 
 func (a *Request) Sent() int {
-	return a.bytes_sent
+	return a.w.Sent()
 }
 
 //	Send header
@@ -169,7 +169,6 @@ func (a *Request) write_header(status int){
 		header.Set(key, value)
 	}
 	a.w.WriteHeader(status)
-	a.header_sent 	= true
 }
 
 //	Write JSON response
@@ -210,8 +209,6 @@ func (a *Request) write(res string){
 	} else {
 		a.w.Write([]byte(res))
 	}
-	a.status		= w.status
-	a.bytes_sent	= w.bytes_sent
 	if a.deferred != nil {
 		a.deferred(a)
 	}
