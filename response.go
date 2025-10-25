@@ -27,13 +27,14 @@ type (
 	response_writer struct {
 		http.ResponseWriter
 		status		int
+		header_sent	bool
 		bytes_sent 	int
 	}
 )
 
 //	Set header
 func (a *Request) Header(key, value string){
-	if a.header_sent {
+	if a.w.header_sent {
 		panic("Header already sent. Can not set header: "+key)
 	}
 	a.header[key] = value
@@ -63,7 +64,7 @@ func (a *Request) Error(status int, err error){
 	if err == nil {
 		err = fmt.Errorf(http.StatusText(status))
 	}
-	if !a.header_sent {
+	if !a.w.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -77,7 +78,7 @@ func (a *Request) Error(status int, err error){
 
 //	Errors JSON response
 func (a *Request) Errors(status int, errs map[string]error){
-	if !a.header_sent {
+	if !a.w.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -95,7 +96,7 @@ func (a *Request) Errors(status int, errs map[string]error){
 
 //	Warnings JSON response
 func (a *Request) Warnings(status int, errs map[string]error){
-	if !a.header_sent {
+	if !a.w.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -113,7 +114,7 @@ func (a *Request) Warnings(status int, errs map[string]error){
 
 //	Errors JSON response
 func (a *Request) Bulk_errors(status int, bulk_errs []map[string]error){
-	if !a.header_sent {
+	if !a.w.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -137,7 +138,7 @@ func (a *Request) Bulk_errors(status int, bulk_errs []map[string]error){
 
 //	Errors JSON response
 func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
-	if !a.header_sent {
+	if !a.w.header_sent {
 		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 		a.write_header(status)
 	} else {
@@ -174,7 +175,7 @@ func (a *Request) write_header(status int){
 		header.Set(key, value)
 	}
 	a.w.WriteHeader(status)
-	a.header_sent 	= true
+	a.w.header_sent = true
 }
 
 //	Write JSON response

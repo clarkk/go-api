@@ -14,13 +14,13 @@ import (
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/invalid_json"
 	"github.com/clarkk/go-util/hash"
-	"github.com/clarkk/go-util/serv"
+	//"github.com/clarkk/go-util/serv"
 	"github.com/clarkk/go-util/serv/req"
 )
 
 type (
 	Request struct {
-		w 				response_writer
+		w 				*response_writer
 		r 				*http.Request
 		
 		handle_gzip		bool
@@ -30,7 +30,6 @@ type (
 		
 		status 			int
 		header 			List
-		header_sent 	bool
 		
 		bytes_sent 		int
 		
