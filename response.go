@@ -23,12 +23,6 @@ type (
 		Errors 			[]*List		`json:"errors,omitempty"`
 		Semantic_errors []*string	`json:"semantic_errors,omitempty"`
 	}
-	
-	response_writer struct {
-		http.ResponseWriter
-		status		int
-		bytes_sent 	int
-	}
 )
 
 //	Set header
@@ -205,7 +199,7 @@ func (a *Request) write_JSON(res any){
 //	Write response
 func (a *Request) write(res string){
 	//	Wrap writer to count bytes sent
-	w := &response_writer{
+	w := &serv.Writer{
 		ResponseWriter: a.w,
 	}
 	if a.accept_gzip {
@@ -220,15 +214,4 @@ func (a *Request) write(res string){
 	if a.deferred != nil {
 		a.deferred(a)
 	}
-}
-
-func (r *response_writer) WriteHeader(status int){
-	r.status = status
-	r.ResponseWriter.WriteHeader(status)
-}
-
-func (r *response_writer) Write(b []byte) (int, error){
-	n, err := r.ResponseWriter.Write(b)
-	r.bytes_sent += n
-	return n, err
 }
