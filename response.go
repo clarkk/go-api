@@ -157,11 +157,11 @@ func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
 }
 
 func (a *Request) Status() int {
-	return a.status
+	return a.w.status
 }
 
 func (a *Request) Sent() int {
-	return a.bytes_sent
+	return a.w.bytes_sent
 }
 
 //	Send header
@@ -180,11 +180,8 @@ func (a *Request) write_header(status int){
 //	Write JSON response
 func (a *Request) write_JSON(res any){
 	//	Wrap writer to count bytes sent
-	w := &response_writer{
-		ResponseWriter: a.w,
-	}
 	if a.accept_gzip {
-		gz := gzip.NewWriter(w)
+		gz := gzip.NewWriter(a.w)
 		defer gz.Close()
 		if err := json.MarshalWrite(gz, res); err != nil {
 			switch t := err.(type) {
@@ -193,15 +190,13 @@ func (a *Request) write_JSON(res any){
 			}
 		}
 	} else {
-		if err := json.MarshalWrite(w, res); err != nil {
+		if err := json.MarshalWrite(a.w, res); err != nil {
 			switch t := err.(type) {
 			case *json.SemanticError:
 				panic("API response JSON marshal: "+t.Error())
 			}
 		}
 	}
-	a.status		= w.status
-	a.bytes_sent	= w.bytes_sent
 	if a.deferred != nil {
 		a.deferred(a)
 	}
@@ -210,18 +205,13 @@ func (a *Request) write_JSON(res any){
 //	Write response
 func (a *Request) write(res string){
 	//	Wrap writer to count bytes sent
-	w := &response_writer{
-		ResponseWriter: a.w,
-	}
 	if a.accept_gzip {
-		gz := gzip.NewWriter(w)
+		gz := gzip.NewWriter(a.w)
 		defer gz.Close()
 		gz.Write([]byte(res))
 	} else {
-		w.Write([]byte(res))
+		a.w.Write([]byte(res))
 	}
-	a.status		= w.status
-	a.bytes_sent	= w.bytes_sent
 	if a.deferred != nil {
 		a.deferred(a)
 	}

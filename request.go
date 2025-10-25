@@ -20,7 +20,7 @@ import (
 
 type (
 	Request struct {
-		w 				http.ResponseWriter
+		w 				response_writer
 		r 				*http.Request
 		
 		handle_gzip		bool
@@ -53,7 +53,7 @@ func Input_required_error(s []string) error {
 
 func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 	return &Request{
-		w:				w,
+		w:				&response_writer{ResponseWriter: w},
 		r:				r,
 		handle_gzip:	handle_gzip,
 		accept_gzip:	accept_gzip(r, handle_gzip),
