@@ -26,6 +26,7 @@ type (
 	
 	response_writer struct {
 		http.ResponseWriter
+		status		int
 		bytes_sent 	int
 	}
 )
@@ -223,6 +224,11 @@ func (a *Request) write(res string){
 	if a.deferred != nil {
 		a.deferred(a)
 	}
+}
+
+func (r *response_writer) WriteHeader(code int){
+	r.status = code
+	r.ResponseWriter.WriteHeader(code)
 }
 
 func (r *response_writer) Write(b []byte) (int, error){
