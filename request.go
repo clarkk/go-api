@@ -14,13 +14,13 @@ import (
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/invalid_json"
 	"github.com/clarkk/go-util/hash"
-	//"github.com/clarkk/go-util/serv"
+	"github.com/clarkk/go-util/serv"
 	"github.com/clarkk/go-util/serv/req"
 )
 
 type (
 	Request struct {
-		w 				response_writer
+		w 				http.ResponseWriter
 		r 				*http.Request
 		
 		handle_gzip		bool
@@ -30,6 +30,7 @@ type (
 		
 		status 			int
 		header 			List
+		header_sent 	bool
 		
 		bytes_sent 		int
 		
@@ -52,7 +53,7 @@ func Input_required_error(s []string) error {
 
 func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 	return &Request{
-		w:				response_writer{ResponseWriter: w},
+		w:				w,
 		r:				r,
 		handle_gzip:	handle_gzip,
 		accept_gzip:	accept_gzip(r, handle_gzip),
@@ -63,7 +64,7 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 //	Recover from panic inside route handler
 func (a *Request) Recover(){
 	if err := recover(); err != nil {
-		if !a.w.header_sent {
+		if !a.w.(*serv.Writer).Sent_headers() {
 			a.Error(http.StatusInternalServerError, nil)
 		}
 		url := a.r.Host+a.r.URL.Path
