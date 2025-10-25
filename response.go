@@ -157,11 +157,11 @@ func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
 }
 
 func (a *Request) Status() int {
-	return a.w.status
+	return a.status
 }
 
 func (a *Request) Sent() int {
-	return a.w.bytes_sent
+	return a.bytes_sent
 }
 
 //	Send header
