@@ -48,8 +48,13 @@ func Input_required_error(s []string) error {
 }
 
 func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
+	sw, ok := w.(*serv.Writer)
+	if !ok {
+		sw = serv.NewWriter(w)
+	}
+	
 	return &Request{
-		w:				serv.NewWriter(w),
+		w:				sw,
 		r:				r,
 		handle_gzip:	handle_gzip,
 		accept_gzip:	accept_gzip(r, handle_gzip),
