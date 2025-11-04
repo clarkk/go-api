@@ -181,10 +181,12 @@ func request_slice(b []byte) (body []jsontext.Value, serr *Semantic_error){
 }
 
 func required_fields(input any) map[string]reflect.Type {
+	fmt.Println(input)
 	rv := reflect.ValueOf(input)
 	for rv.Kind() == reflect.Pointer || rv.Kind() == reflect.Interface {
 		rv = rv.Elem()
 	}
+	fmt.Println(rv)
 	return required_fields_struct(rv)
 }
 
