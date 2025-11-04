@@ -190,6 +190,7 @@ func required_fields(input any) map[string]reflect.Type {
 
 func required_fields_struct(rv reflect.Value) map[string]reflect.Type {
 	list := map[string]reflect.Type{}
+	fmt.Println("kind:", rv.Kind())
 	if rv.Kind() != reflect.Struct {
 		panic("Input must be a struct")
 	}
