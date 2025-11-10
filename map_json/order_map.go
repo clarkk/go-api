@@ -6,29 +6,58 @@ import (
 )
 
 type (
-	Map 		[]Item
-	Item struct {
-		Key 	string
-		Value 	any
+	Map struct {
+		items	[]item
+		index	map[string]int
+	}
+	
+	item struct {
+		key 	string
+		value 	any
 	}
 )
 
-func (m Map) MarshalJSON() ([]byte, error){
+func New() *Map {
+	return &Map{
+		index: map[string]int{},
+	}
+}
+
+func (m *Map) Set(key string, value any){
+	if i, ok := m.index[key]; ok {
+		m.items[i].Value = value
+	} else {
+		m.index[key] = len(m.items)
+		m.items = append(m.items, item{
+			key:	key,
+			value:	value,
+		})
+	}
+}
+
+func (m *Map) Get(key string) (any, bool){
+	if i, ok := m.index[key]; ok {
+		return m.items[i].Value, true
+	}
+	return nil, false
+}
+
+func (m *Map) MarshalJSON() ([]byte, error){
 	var b bytes.Buffer
 	b.WriteString("{")
-	for i, kv := range m {
+	for i, kv := range m.items {
 		if i != 0 {
 			b.WriteString(",")
 		}
 		//	Marshal key
-		key, err := json.Marshal(kv.Key)
+		key, err := json.Marshal(kv.key)
 		if err != nil {
 			return nil, err
 		}
 		b.Write(key)
 		b.WriteString(":")
 		//	Marshal value
-		val, err := json.Marshal(kv.Value)
+		val, err := json.Marshal(kv.value)
 		if err != nil {
 			return nil, err
 		}
