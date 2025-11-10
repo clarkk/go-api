@@ -42,6 +42,10 @@ func (m *Map) Get(key string) (any, bool){
 	return nil, false
 }
 
+func (m *Map) Len() int {
+	return len(m.items)
+}
+
 func (m *Map) MarshalJSON() ([]byte, error){
 	var b bytes.Buffer
 	b.WriteString("{")
