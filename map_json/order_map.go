@@ -25,7 +25,7 @@ func New() *Map {
 
 func (m *Map) Set(key string, value any){
 	if i, ok := m.index[key]; ok {
-		m.items[i].Value = value
+		m.items[i].value = value
 	} else {
 		m.index[key] = len(m.items)
 		m.items = append(m.items, item{
@@ -37,7 +37,7 @@ func (m *Map) Set(key string, value any){
 
 func (m *Map) Get(key string) (any, bool){
 	if i, ok := m.index[key]; ok {
-		return m.items[i].Value, true
+		return m.items[i].value, true
 	}
 	return nil, false
 }
