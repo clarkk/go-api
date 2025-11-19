@@ -93,7 +93,7 @@ func (e *etag) Bool(b bool) *etag {
 	return e
 }
 
-func (e *etag) Map[V any](m map[string]V) *etag {
+func (e *etag) Map(m map[string]any) *etag {
 	keys := make([]K, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
