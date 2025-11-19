@@ -1,9 +1,12 @@
 package etag
 
 import (
+	"sort"
+	"bytes"
 	"strings"
 	"strconv"
 	"hash/crc32"
+	"encoding/gob"
 )
 
 type etag struct {
@@ -17,29 +20,29 @@ func New() *etag {
 }
 
 func (e *etag) Int(i int) *etag {
-	e.data = append(e.data, strconv.Itoa(i))
+	e.String(strconv.Itoa(i))
 	return e
 }
 
 func (e *etag) Int_ptr(i *int) *etag {
 	if i == nil {
-		e.data = append(e.data, "\x00")
+		e.String("\x00")
 	} else {
-		e.data = append(e.data, strconv.Itoa(*i))
+		e.String(strconv.Itoa(*i))
 	}
 	return e
 }
 
 func (e *etag) Int64(i int64) *etag {
-	e.data = append(e.data, strconv.FormatInt(i, 10))
+	e.String(strconv.FormatInt(i, 10))
 	return e
 }
 
 func (e *etag) Int64_ptr(i *int64) *etag {
 	if i == nil {
-		e.data = append(e.data, "\x00")
+		e.String("\x00")
 	} else {
-		e.data = append(e.data, strconv.FormatInt(*i, 10))
+		e.String(strconv.FormatInt(*i, 10))
 	}
 	return e
 }
@@ -49,21 +52,21 @@ func (e *etag) Uint32(i uint32) *etag {
 }
 
 func (e *etag) Uint64(i uint64) *etag {
-	e.data = append(e.data, strconv.FormatUint(i, 10))
+	e.String(strconv.FormatUint(i, 10))
 	return e
 }
 
 func (e *etag) Uint64_ptr(i *uint64) *etag {
 	if i == nil {
-		e.data = append(e.data, "\x00")
+		e.String("\x00")
 	} else {
-		e.data = append(e.data, strconv.FormatUint(*i, 10))
+		e.String(strconv.FormatUint(*i, 10))
 	}
 	return e
 }
 
 func (e *etag) Float64(f float64) *etag {
-	e.data = append(e.data, strconv.FormatFloat(f, 'f', -1, 64))
+	e.String(strconv.FormatFloat(f, 'f', -1, 64))
 	return e
 }
 
@@ -74,19 +77,41 @@ func (e *etag) String(s string) *etag {
 
 func (e *etag) String_ptr(s *string) *etag {
 	if s == nil {
-		e.data = append(e.data, "\x00")
+		e.String("\x00")
 	} else {
-		e.data = append(e.data, *s)
+		e.String(*s)
 	}
 	return e
 }
 
 func (e *etag) Bool(b bool) *etag {
 	if b {
-		e.data = append(e.data, "1")
+		e.String("1")
 	} else {
-		e.data = append(e.data, "0")
+		e.String("0")
 	}
+	return e
+}
+
+func (e *etag) Map[V any](m map[string]V) *etag {
+	keys := make([]K, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(a, b int) bool {
+		return keys[a] < keys[b]
+	})
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	for _, k := range keys {
+		if err := enc.Encode(k); err != nil {
+			panic(err)
+		}
+		if err := enc.Encode(m[k]); err != nil {
+			panic(err)
+		}
+	}
+	e.String(buf.String())
 	return e
 }
 
