@@ -94,7 +94,7 @@ func (e *etag) Bool(b bool) *etag {
 }
 
 func (e *etag) Map(m map[string]any) *etag {
-	keys := make([]K, 0, len(m))
+	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
 	}
