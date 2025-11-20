@@ -96,18 +96,22 @@ func (e *etag) Bool(b bool) *etag {
 }
 
 func (e *etag) Slice(slice any) *etag {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		panic("Slice: value is not a slice")
-	}
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	for i := range rv.Len() {
-		if err := enc.Encode(rv.Index(i).Interface()); err != nil {
-			panic(err)
+	if slice == nil {
+		e.String(null_string)
+	} else {
+		rv := reflect.ValueOf(slice)
+		if rv.Kind() != reflect.Slice {
+			panic("Slice: value is not a slice")
 		}
+		var buf bytes.Buffer
+		enc := gob.NewEncoder(&buf)
+		for i := range rv.Len() {
+			if err := enc.Encode(rv.Index(i).Interface()); err != nil {
+				panic(err)
+			}
+		}
+		e.String(buf.String())
 	}
-	e.String(buf.String())
 	return e
 }
 
