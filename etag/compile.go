@@ -3,6 +3,7 @@ package etag
 import (
 	"bytes"
 	"strings"
+	"reflect"
 	"strconv"
 	"hash/crc32"
 	"encoding/gob"
@@ -94,11 +95,15 @@ func (e *etag) Bool(b bool) *etag {
 	return e
 }
 
-func (e *etag) Slice[V any](values []V) *etag {
+func (e *etag) Slice(slice any) *etag {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		panic("Slice: value is not a slice")
+	}
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
-	for _, v := range values {
-		if err := enc.Encode(v); err != nil {
+	for i := range rv.Len() {
+		if err := enc.Encode(rv.Index(i).Interface()); err != nil {
 			panic(err)
 		}
 	}
