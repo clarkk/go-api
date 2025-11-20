@@ -1,13 +1,14 @@
 package etag
 
 import (
-	"sort"
 	"bytes"
 	"strings"
 	"strconv"
 	"hash/crc32"
 	"encoding/gob"
 )
+
+const null_string = "\x00"
 
 type etag struct {
 	data []string
@@ -26,7 +27,7 @@ func (e *etag) Int(i int) *etag {
 
 func (e *etag) Int_ptr(i *int) *etag {
 	if i == nil {
-		e.String("\x00")
+		e.String(null_string)
 	} else {
 		e.String(strconv.Itoa(*i))
 	}
@@ -40,7 +41,7 @@ func (e *etag) Int64(i int64) *etag {
 
 func (e *etag) Int64_ptr(i *int64) *etag {
 	if i == nil {
-		e.String("\x00")
+		e.String(null_string)
 	} else {
 		e.String(strconv.FormatInt(*i, 10))
 	}
@@ -58,7 +59,7 @@ func (e *etag) Uint64(i uint64) *etag {
 
 func (e *etag) Uint64_ptr(i *uint64) *etag {
 	if i == nil {
-		e.String("\x00")
+		e.String(null_string)
 	} else {
 		e.String(strconv.FormatUint(*i, 10))
 	}
@@ -77,7 +78,7 @@ func (e *etag) String(s string) *etag {
 
 func (e *etag) String_ptr(s *string) *etag {
 	if s == nil {
-		e.String("\x00")
+		e.String(null_string)
 	} else {
 		e.String(*s)
 	}
@@ -93,21 +94,11 @@ func (e *etag) Bool(b bool) *etag {
 	return e
 }
 
-func (e *etag) Map(m map[string]any) *etag {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Slice(keys, func(a, b int) bool {
-		return keys[a] < keys[b]
-	})
+func (e *etag) Slice(values []any) *etag {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
-	for _, k := range keys {
-		if err := enc.Encode(k); err != nil {
-			panic(err)
-		}
-		if err := enc.Encode(m[k]); err != nil {
+	for _, v := range values {
+		if err := enc.Encode(v); err != nil {
 			panic(err)
 		}
 	}
