@@ -94,7 +94,7 @@ func (e *etag) Bool(b bool) *etag {
 	return e
 }
 
-func (e *etag) Slice(values []any) *etag {
+func (e *etag) Slice[V any](values []V) *etag {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	for _, v := range values {
