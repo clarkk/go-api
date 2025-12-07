@@ -78,6 +78,11 @@ func (a *Request) Defer(fn func(*Request)){
 	a.deferred = fn
 }
 
+//	Get request method
+func (a *Request) Method() string {
+	return a.r.Method
+}
+
 //	Get request context
 func (a *Request) Context() context.Context {
 	return a.r.Context()
