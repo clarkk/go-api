@@ -24,12 +24,15 @@ func (a *Request) Error_log(code int, err error, e *env.Environment){
 		a.r.URL.RawQuery,
 		env_string,
 		len(a.body_received),
-		string(a.body_received),
+		a.body_received,
 		errors.Wrap(err, 2).ErrorStack(),
 	)
 	log.Printf(tab_indentation(s))
 }
 
 func tab_indentation(s string) string {
-	return strings.Join(strings.Split(s, "\n"), "\n\t")
+	if s == "" {
+		return ""
+	}
+	return strings.ReplaceAll(s, "\n", "\n\t")
 }

@@ -36,7 +36,7 @@ func Match(a *api.Request, id uint64, m Matcher) (int, error){
 
 //	Disallow "If-Match"
 func Disallow_match(a *api.Request) bool {
-	if strip_encapsulation(a.Request_header(head.IF_MATCH)) != "" {
+	if a.Request_header(head.IF_MATCH) != "" {
 		a.Errorf(http.StatusPreconditionFailed, "%s header not allowed", head.IF_MATCH)
 		return false
 	}

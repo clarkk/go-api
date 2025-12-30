@@ -47,13 +47,13 @@ func (l *Limit) Limit_max(max uint8){
 func (l *Limit) Count(count uint32) bool {
 	l.entries = count
 	//	Offset out of range
-	if l.offset != 0 && l.offset + 1 > count {
+	if l.offset != 0 && l.offset >= count {
 		return false
 	}
 	return true
 }
 
-func (l Limit) MarshalJSON() ([]byte, error){
+func (l *Limit) MarshalJSON() ([]byte, error){
 	return json.Marshal(limit_json{
 		Offset:		l.offset,
 		Limit:		l.limit,

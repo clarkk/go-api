@@ -156,10 +156,6 @@ func (a *Request) Request_JSON_slice(post_limit int, input any) (int, error, []e
 }
 
 func (a *Request) Idempotency_hash() (string, error){
-	b, err := a.read_post_reset()
-	if err != nil {
-		return "", err
-	}
 	s := a.r.Method+":"+a.r.RequestURI
 	if header_type := a.r.Header.Get(head.CONTENT_TYPE); header_type != "" {
 		s += ":"+header_type
@@ -167,18 +163,7 @@ func (a *Request) Idempotency_hash() (string, error){
 	if header_etag := a.r.Header.Get(head.IF_MATCH); header_etag != "" {
 		s += ":"+header_etag
 	}
-	return hash.SHA256_hex([]byte(s+":"+string(b))), nil
-}
-
-//	Read post payload and reset stream
-func (a *Request) read_post_reset() ([]byte, error){
-	b, err := io.ReadAll(a.r.Body)
-	if err != nil {
-		return nil, err
-	}
-	a.r.Body.Close()
-	a.r.Body = io.NopCloser(bytes.NewReader(b))
-	return b, nil
+	return hash.SHA256_hex(append([]byte(s+":"), a.body_received...)), nil
 }
 
 func (a *Request) request_JSON(post_limit int) ([]byte, int, error){

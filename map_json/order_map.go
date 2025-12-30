@@ -3,6 +3,7 @@ package map_json
 import (
 	"bytes"
 	"github.com/go-json-experiment/json"
+	"github.com/go-json-experiment/json/jsontext"
 )
 
 type (
@@ -48,25 +49,29 @@ func (m *Map) Len() int {
 
 func (m *Map) MarshalJSON() ([]byte, error){
 	var b bytes.Buffer
-	b.WriteString("{")
-	for i, kv := range m.items {
-		if i != 0 {
-			b.WriteString(",")
-		}
-		//	Marshal key
-		key, err := json.Marshal(kv.key)
-		if err != nil {
-			return nil, err
-		}
-		b.Write(key)
-		b.WriteString(":")
-		//	Marshal value
-		val, err := json.Marshal(kv.value)
-		if err != nil {
-			return nil, err
-		}
-		b.Write(val)
+	enc := jsontext.NewEncoder(&b)
+	
+	if err := enc.WriteToken(jsontext.BeginObject); err != nil {
+		return nil, err
 	}
-	b.WriteString("}")
+	
+	for _, kv := range m.items {
+		if err := enc.WriteToken(jsontext.String(kv.key)); err != nil {
+			return nil, err
+		}
+		
+		valBytes, err := json.Marshal(kv.value)
+		if err != nil {
+			return nil, err
+		}
+		if err := enc.WriteValue(valBytes); err != nil {
+			return nil, err
+		}
+	}
+	
+	if err := enc.WriteToken(jsontext.EndObject); err != nil {
+		return nil, err
+	}
+	
 	return b.Bytes(), nil
 }

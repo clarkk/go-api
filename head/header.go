@@ -56,7 +56,7 @@ func Request_JSON(r *http.Request) bool {
 }
 
 func GMT_unix_time(unix_time int64) string {
-	return strings.Replace(time.Unix(unix_time, 0).Format(time.RFC1123), "UTC", "GMT", 1)
+	return time.Unix(unix_time, 0).UTC().Format(http.TimeFormat)
 }
 
 func Response_cache_control(days int) string {
