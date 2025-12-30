@@ -1,15 +1,15 @@
 package etag
 
 import (
-	"bytes"
-	"strings"
+	"fmt"
 	"reflect"
 	"strconv"
 	"hash/crc32"
-	"encoding/gob"
 )
 
 const null_string = "\x00"
+
+var crc32_table = crc32.MakeTable(crc32.IEEE)
 
 type etag struct {
 	data []string
@@ -22,31 +22,27 @@ func New() *etag {
 }
 
 func (e *etag) Int(i int) *etag {
-	e.String(strconv.Itoa(i))
-	return e
+	return e.String(strconv.Itoa(i))
 }
 
 func (e *etag) Int_ptr(i *int) *etag {
 	if i == nil {
-		e.String(null_string)
+		return e.String(null_string)
 	} else {
-		e.String(strconv.Itoa(*i))
+		return e.String(strconv.Itoa(*i))
 	}
-	return e
 }
 
 func (e *etag) Int64(i int64) *etag {
-	e.String(strconv.FormatInt(i, 10))
-	return e
+	return e.String(strconv.FormatInt(i, 10))
 }
 
 func (e *etag) Int64_ptr(i *int64) *etag {
 	if i == nil {
-		e.String(null_string)
+		return e.String(null_string)
 	} else {
-		e.String(strconv.FormatInt(*i, 10))
+		return e.String(strconv.FormatInt(*i, 10))
 	}
-	return e
 }
 
 func (e *etag) Uint32(i uint32) *etag {
@@ -54,22 +50,19 @@ func (e *etag) Uint32(i uint32) *etag {
 }
 
 func (e *etag) Uint64(i uint64) *etag {
-	e.String(strconv.FormatUint(i, 10))
-	return e
+	return e.String(strconv.FormatUint(i, 10))
 }
 
 func (e *etag) Uint64_ptr(i *uint64) *etag {
 	if i == nil {
-		e.String(null_string)
+		return e.String(null_string)
 	} else {
-		e.String(strconv.FormatUint(*i, 10))
+		return e.String(strconv.FormatUint(*i, 10))
 	}
-	return e
 }
 
 func (e *etag) Float64(f float64) *etag {
-	e.String(strconv.FormatFloat(f, 'f', -1, 64))
-	return e
+	return e.String(strconv.FormatFloat(f, 'f', -1, 64))
 }
 
 func (e *etag) String(s string) *etag {
@@ -79,44 +72,49 @@ func (e *etag) String(s string) *etag {
 
 func (e *etag) String_ptr(s *string) *etag {
 	if s == nil {
-		e.String(null_string)
+		return e.String(null_string)
 	} else {
-		e.String(*s)
+		return e.String(*s)
 	}
-	return e
 }
 
 func (e *etag) Bool(b bool) *etag {
 	if b {
-		e.String("1")
+		return e.String("1")
 	} else {
-		e.String("0")
+		return e.String("0")
 	}
-	return e
 }
 
 func (e *etag) Slice(slice any) *etag {
 	if slice == nil {
-		e.String(null_string)
-	} else {
-		rv := reflect.ValueOf(slice)
-		if rv.Kind() != reflect.Slice {
-			panic("Slice: value is not a slice")
-		}
-		var buf bytes.Buffer
-		enc := gob.NewEncoder(&buf)
-		for i := range rv.Len() {
-			if err := enc.Encode(rv.Index(i).Interface()); err != nil {
-				panic(err)
-			}
-		}
-		e.String(buf.String())
+		return e.String(null_string)
 	}
-	return e
+	
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		panic("Slice: value is not a slice")
+	}
+	var sub_hash uint32
+	for i := range rv.Len() {
+		val := rv.Index(i).Interface()
+		s := []byte(fmt.Sprint(val))
+		sub_hash = hash_update(sub_hash, s, ",", i)
+	}
+	return e.Uint32(sub_hash)
 }
 
 func (e *etag) Compile() uint32 {
-	crc32q := crc32.MakeTable(0xedb88320)
-	s := strings.Join(e.data, ":")
-	return crc32.Checksum([]byte(s), crc32q)
+	var hash uint32
+	for i, s := range e.data {
+		hash = hash_update(hash, []byte(s), ":", i)
+	}
+	return hash
+}
+
+func hash_update(hash uint32, data []byte, separator string, index int) uint32 {
+	if index > 0 {
+		hash = crc32.Update(hash, crc32_table, []byte(separator))
+	}
+	return crc32.Update(hash, crc32_table, data)
 }

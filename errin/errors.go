@@ -24,6 +24,9 @@ func (m *Map) Set(key, msg string){
 }
 
 func (m Map) Has(key string) bool {
+	if m == nil {
+		return false
+	}
 	_, ok := m[key]
 	return ok
 }
@@ -36,12 +39,15 @@ func (m *Map_lang) Set(key string, lang *Lang){
 }
 
 func (m Map_lang) Has(key string) bool {
+	if m == nil {
+		return false
+	}
 	_, ok := m[key]
 	return ok
 }
 
 func (m *Map_lang) String() string {
-	if m == nil {
+	if m == nil || *m == nil {
 		return ""
 	}
 	s := make([]string, len(*m))
@@ -54,7 +60,7 @@ func (m *Map_lang) String() string {
 }
 
 func (m *Map) String() string {
-	if m == nil {
+	if m == nil || *m == nil {
 		return ""
 	}
 	s := make([]string, len(*m))
