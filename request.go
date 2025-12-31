@@ -2,12 +2,10 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"path"
 	"context"
 	"strings"
 	"net/http"
-	"github.com/go-errors/errors"
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/invalid_json"
@@ -65,7 +63,15 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 
 //	Recover from panic inside route handler
 func (a *Request) Recover(){
-	if err := recover(); err != nil {
+	if r := recover(); r != nil {
+		var err error
+		switch t := r.(type) {
+		case error:
+			err = t
+		default:
+			err = fmt.Errorf("panic: %v", t)
+		}
+		
 		code := http.StatusInternalServerError
 		if !a.w.Sent_header() {
 			a.Error(code, nil)
