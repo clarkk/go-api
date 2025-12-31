@@ -54,15 +54,14 @@ func (a *Request) Errorf(status int, s string, args... any){
 
 //	Error JSON response
 func (a *Request) Error(status int, err error){
-	if err == nil {
-		err = fmt.Errorf(http.StatusText(status))
-	}
-	if !a.w.Sent_header() {
-		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(status)
-	} else {
+	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
+	}
+	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
+	a.write_header(status)
+	if err == nil {
+		err = fmt.Errorf(http.StatusText(status))
 	}
 	a.write_JSON(response_error{
 		Error: List{"request": err.Error()},
@@ -71,13 +70,12 @@ func (a *Request) Error(status int, err error){
 
 //	Errors JSON response
 func (a *Request) Errors(status int, errs map[string]error){
-	if !a.w.Sent_header() {
-		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(status)
-	} else {
+	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
+	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
+	a.write_header(status)
 	list := List{}
 	for key, err := range errs {
 		list[key] = err.Error()
@@ -89,13 +87,12 @@ func (a *Request) Errors(status int, errs map[string]error){
 
 //	Warnings JSON response
 func (a *Request) Warnings(status int, errs map[string]error){
-	if !a.w.Sent_header() {
-		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(status)
-	} else {
+	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
+	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
+	a.write_header(status)
 	list := List{}
 	for key, err := range errs {
 		list[key] = err.Error()
@@ -107,13 +104,12 @@ func (a *Request) Warnings(status int, errs map[string]error){
 
 //	Errors JSON response
 func (a *Request) Bulk_errors(status int, bulk_errs []map[string]error){
-	if !a.w.Sent_header() {
-		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(status)
-	} else {
+	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
+	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
+	a.write_header(status)
 	bulk := make([]*List, len(bulk_errs))
 	for i, errs := range bulk_errs {
 		if errs != nil {
@@ -131,13 +127,12 @@ func (a *Request) Bulk_errors(status int, bulk_errs []map[string]error){
 
 //	Errors JSON response
 func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
-	if !a.w.Sent_header() {
-		a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-		a.write_header(status)
-	} else {
+	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
+	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
+	a.write_header(status)
 	bulk := make([]*string, len(bulk_errs))
 	for i, err := range bulk_errs {
 		if err != nil {

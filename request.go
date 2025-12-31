@@ -11,6 +11,7 @@ import (
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/invalid_json"
+	"github.com/clarkk/go-util/env"
 	"github.com/clarkk/go-util/hash"
 	"github.com/clarkk/go-util/serv"
 	"github.com/clarkk/go-util/serv/req"
@@ -20,6 +21,7 @@ type (
 	Request struct {
 		w 				*serv.Writer
 		r 				*http.Request
+		e				*env.Environment
 		
 		handle_gzip		bool
 		accept_gzip 	bool
@@ -54,6 +56,7 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 	return &Request{
 		w:				sw,
 		r:				r,
+		e:				env.Request(r),
 		handle_gzip:	handle_gzip,
 		accept_gzip:	accept_gzip(r, handle_gzip),
 		header:			List{},
@@ -63,11 +66,11 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 //	Recover from panic inside route handler
 func (a *Request) Recover(){
 	if err := recover(); err != nil {
+		code := http.StatusInternalServerError
 		if !a.w.Sent_header() {
-			a.Error(http.StatusInternalServerError, nil)
+			a.Error(code, nil)
 		}
-		url := a.r.Host+a.r.URL.Path
-		log.Printf("%s %s %s\nPOST: %s\nERROR: %s", a.r.Method, url, a.r.URL.RawQuery, string(a.body_received), errors.Wrap(err, 2).ErrorStack())
+		a.log(code, err, a.e)
 	}
 }
 

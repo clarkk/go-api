@@ -60,11 +60,11 @@ func (m *Map) MarshalJSON() ([]byte, error){
 			return nil, err
 		}
 		
-		valBytes, err := json.Marshal(kv.value)
+		value_bytes, err := json.Marshal(kv.value)
 		if err != nil {
 			return nil, err
 		}
-		if err := enc.WriteValue(valBytes); err != nil {
+		if err := enc.WriteValue(value_bytes); err != nil {
 			return nil, err
 		}
 	}
