@@ -2,11 +2,18 @@ package api
 
 import (
 	"fmt"
+	"sync"
 	"net/http"
 	"compress/gzip"
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/head"
 )
+
+var gzip_pool = sync.Pool{
+	New: func() any {
+		return gzip.NewWriter(nil)
+	},
+}
 
 type (
 	Response_result struct {
@@ -76,7 +83,7 @@ func (a *Request) Errors(status int, errs map[string]error){
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
-	list := List{}
+	list := make(List, len(errs))
 	for key, err := range errs {
 		list[key] = err.Error()
 	}
@@ -93,7 +100,7 @@ func (a *Request) Warnings(status int, errs map[string]error){
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
-	list := List{}
+	list := make(List, len(errs))
 	for key, err := range errs {
 		list[key] = err.Error()
 	}
@@ -113,7 +120,7 @@ func (a *Request) Bulk_errors(status int, bulk_errs []map[string]error){
 	bulk := make([]*List, len(bulk_errs))
 	for i, errs := range bulk_errs {
 		if errs != nil {
-			l := List{}
+			l := make(List, len(errs))
 			for key, err := range errs {
 				l[key] = err.Error()
 			}
@@ -168,8 +175,11 @@ func (a *Request) write_header(status int){
 //	Write JSON response
 func (a *Request) write_JSON(res any){
 	if a.accept_gzip {
-		gz := gzip.NewWriter(a.w)
+		gz := gzip_pool.Get().(*gzip.Writer)
+		gz.Reset(a.w)
+		defer gzip_pool.Put(gz)
 		defer gz.Close()
+		
 		if err := json.MarshalWrite(gz, res); err != nil {
 			switch t := err.(type) {
 			case *json.SemanticError:
@@ -192,8 +202,11 @@ func (a *Request) write_JSON(res any){
 //	Write response
 func (a *Request) write(res string){
 	if a.accept_gzip {
-		gz := gzip.NewWriter(a.w)
+		gz := gzip_pool.Get().(*gzip.Writer)
+		gz.Reset(a.w)
+		defer gzip_pool.Put(gz)
 		defer gz.Close()
+		
 		gz.Write([]byte(res))
 	} else {
 		a.w.Write([]byte(res))
