@@ -29,7 +29,6 @@ func main(){
   
   h.Subhost("subdomain.").
     Route_exact(serv.POST, "/create", 60, func(w http.ResponseWriter, r *http.Request){
-      defer serv.Recover(w)
       
       /*
         Handle GZIP encoding or let reverse proxy (nginx) handle it
@@ -147,7 +146,6 @@ func main(){
   
   h.Subhost("subdomain.").
     Route_exact(serv.POST, "/create", 60, func(w http.ResponseWriter, r *http.Request){
-      defer serv.Recover(w)
       
       //  Handle GZIP encoding or let reverse proxy (nginx) handle it
       handle_gzip = false
