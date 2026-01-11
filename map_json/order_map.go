@@ -7,48 +7,47 @@ import (
 )
 
 type (
-	Map[V any] struct {
-		items	[]item[V]
+	Map struct {
+		items	[]item
 		index	map[string]int
 	}
 	
-	item[V any] struct {
+	item struct {
 		key 	string
-		value 	V
+		value 	any
 	}
 )
 
-func New[V any]() *Map[V] {
-	return &Map[V]{
+func New() *Map {
+	return &Map{
 		index: map[string]int{},
 	}
 }
 
-func (m *Map[V]) Set(key string, value V){
+func (m *Map) Set(key string, value any){
 	if i, ok := m.index[key]; ok {
 		m.items[i].value = value
 	} else {
 		m.index[key] = len(m.items)
-		m.items = append(m.items, item[V]{
+		m.items = append(m.items, item{
 			key:	key,
 			value:	value,
 		})
 	}
 }
 
-func (m *Map[V]) Get(key string) (V, bool){
+func (m *Map) Get(key string) (any, bool){
 	if i, ok := m.index[key]; ok {
 		return m.items[i].value, true
 	}
-	var zero V
-	return zero, false
+	return nil, false
 }
 
-func (m *Map[V]) Len() int {
+func (m *Map) Len() int {
 	return len(m.items)
 }
 
-func (m *Map[V]) MarshalJSON() ([]byte, error){
+func (m *Map) MarshalJSON() ([]byte, error){
 	var b bytes.Buffer
 	enc := jsontext.NewEncoder(&b)
 	
