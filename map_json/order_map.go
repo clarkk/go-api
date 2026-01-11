@@ -20,7 +20,14 @@ type (
 
 func New() *Map {
 	return &Map{
-		index: map[string]int{},
+		index:	map[string]int{},
+	}
+}
+
+func New_len(length int) *Map {
+	return &Map{
+		items:	make([]item, 0, length),
+		index:	make(map[string]int, length),
 	}
 }
 
