@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"compress/gzip"
 	"github.com/go-json-experiment/json"
+	"github.com/clarkk/go-api/errin"
 	"github.com/clarkk/go-api/head"
 )
 
