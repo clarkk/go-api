@@ -1,13 +1,14 @@
 package errin
 
 import (
+	"errors"
 	"strings"
 	"github.com/clarkk/go-api/map_json"
 )
 
 type (
-	Map			[]item[string]
-	Map_lang	[]item[*Lang]
+	Map			[]item_error
+	Map_lang	[]item_lang
 	
 	Lang struct {
 		Key		string
@@ -15,22 +16,27 @@ type (
 	}
 	Rep			map[string]any
 	
-	item[T any] struct {
+	item_error struct {
 		key		string
-		value	T
+		value	error
+	}
+	
+	item_lang struct {
+		key		string
+		value	*Lang
 	}
 )
 
-func (m *Map) Set(key, value string) {
+func (m *Map) Set(key, value string){
 	for i := range *m {
 		if (*m)[i].key == key {
-			(*m)[i].value = value
+			(*m)[i].value = errors.New(value)
 			return
 		}
 	}
-	*m = append(*m, item[string]{
+	*m = append(*m, item_error{
 		key:	key,
-		value:	value,
+		value:	errors.New(value),
 	})
 }
 
@@ -41,7 +47,7 @@ func (m *Map_lang) Set(key string, value *Lang) {
 			return
 		}
 	}
-	*m = append(*m, item[*Lang]{
+	*m = append(*m, item_lang{
 		key:	key,
 		value:	value,
 	})
@@ -71,7 +77,7 @@ func (m Map) Output() *map_json.Map {
 	}
 	res := map_json.New_len(len(m))
 	for _, v := range m {
-		res.Set(v.key, v.value)
+		res.Set(v.key, v.value.Error())
 	}
 	return res
 }
@@ -93,7 +99,7 @@ func (m Map) String() string {
 	}
 	s := make([]string, len(m))
 	for k, v := range m {
-		s[k] = v.key+": "+v.value
+		s[k] = v.key+": "+v.value.Error()
 	}
 	return strings.Join(s, ", ")
 }
