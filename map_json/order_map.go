@@ -50,6 +50,17 @@ func (m *Map) Get(key string) (any, bool){
 	return nil, false
 }
 
+func (m *Map) Keys() []string {
+	if m == nil {
+		return nil
+	}
+	keys := make([]string, len(m.items))
+	for i, it := range m.items {
+		keys[i] = it.key
+	}
+	return keys
+}
+
 func (m *Map) Len() int {
 	return len(m.items)
 }

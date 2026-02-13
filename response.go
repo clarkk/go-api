@@ -76,36 +76,28 @@ func (a *Request) Error(status int, err error){
 }
 
 //	Errors JSON response
-func (a *Request) Errors(status int, errs map[string]error){
+func (a *Request) Errors(status int, errs *errin.Map){
 	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
-	list := make(List, len(errs))
-	for key, err := range errs {
-		list[key] = err.Error()
-	}
 	a.write_JSON(response_error{
-		Error: list,
+		Error: errs,
 	})
 }
 
 //	Warnings JSON response
-func (a *Request) Warnings(status int, errs map[string]error){
+func (a *Request) Warnings(status int, errs *errin.Map){
 	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
-	list := make(List, len(errs))
-	for key, err := range errs {
-		list[key] = err.Error()
-	}
 	a.write_JSON(response_error{
-		Warning: list,
+		Warning: errs,
 	})
 }
 
