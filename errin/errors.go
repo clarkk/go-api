@@ -25,10 +25,6 @@ type (
 	}
 )
 
-/*func (b base) Empty() bool {
-	return b.Map == nil || b.Len() == 0
-}*/
-
 func (b base) Has(key string) bool {
 	if b.Map == nil {
 		return false
@@ -52,7 +48,7 @@ func (m *Map_lang) Set(key string, lang *Lang) {
 }
 
 func (m Map_lang) String() string {
-	if m.Empty() {
+	if m.empty() {
 		return ""
 	}
 	keys := m.Keys()
@@ -65,7 +61,7 @@ func (m Map_lang) String() string {
 }
 
 func (m Map) String() string {
-	if m.Empty() {
+	if m.empty() {
 		return ""
 	}
 	keys := m.Keys()
@@ -75,4 +71,8 @@ func (m Map) String() string {
 		s[i] = k + ": " + val.(string)
 	}
 	return strings.Join(s, ", ")
+}
+
+func (b base) empty() bool {
+	return b.Map == nil || b.Len() == 0
 }
