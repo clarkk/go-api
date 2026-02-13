@@ -34,6 +34,8 @@ type (
 	Input interface {
 		Required() error
 	}
+	
+	List map[string]string
 )
 
 func Input_required_error(s []string) error {

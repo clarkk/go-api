@@ -18,18 +18,18 @@ var gzip_pool = sync.Pool{
 
 type (
 	Response_result struct {
-		Result		any 				`json:"result"`
-		Limit		*Limit				`json:"limit,omitempty"`
+		Result		any 					`json:"result"`
+		Limit		*Limit					`json:"limit,omitempty"`
 	}
 	
 	response_error struct {
-		Error 		*errin.Map			`json:"error,omitempty"`
-		Warning 	*errin.Map			`json:"warning,omitempty"`
+		Error 		*map_json.Map			`json:"error,omitempty"`
+		Warning 	*map_json.Map			`json:"warning,omitempty"`
 	}
 	
 	response_bulk_errors struct {
-		Errors 			[]*errin.Map	`json:"errors,omitempty"`
-		Semantic_errors []*string		`json:"semantic_errors,omitempty"`
+		Errors 			[]*map_json.Map		`json:"errors,omitempty"`
+		Semantic_errors []*string			`json:"semantic_errors,omitempty"`
 	}
 )
 
@@ -71,7 +71,7 @@ func (a *Request) Error(status int, err error){
 	if err == nil {
 		err = fmt.Errorf(http.StatusText(status))
 	}
-	errs := &errin.Map{}
+	errs := map_json.New()
 	errs.Set("request", err.Error())
 	a.write_JSON(response_error{
 		Error: errs,
@@ -79,7 +79,7 @@ func (a *Request) Error(status int, err error){
 }
 
 //	Errors JSON response
-func (a *Request) Errors(status int, errs *errin.Map){
+func (a *Request) Errors(status int, errs errin.Map){
 	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
@@ -87,12 +87,12 @@ func (a *Request) Errors(status int, errs *errin.Map){
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
 	a.write_JSON(response_error{
-		Error: errs,
+		Error: errs.Map(),
 	})
 }
 
 //	Warnings JSON response
-func (a *Request) Warnings(status int, errs *errin.Map){
+func (a *Request) Warnings(status int, errs errin.Map){
 	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
@@ -100,20 +100,24 @@ func (a *Request) Warnings(status int, errs *errin.Map){
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
 	a.write_JSON(response_error{
-		Warning: errs,
+		Warning: errs.Map(),
 	})
 }
 
 //	Errors JSON response
-func (a *Request) Bulk_errors(status int, bulk_errs []*errin.Map){
+func (a *Request) Bulk_errors(status int, bulk_errs []errin.Map){
 	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
+	bulk := make([]*map_json.Map, len(bulk_errs))
+	for i, errs := range bulk_errs {
+		bulk[i] = errs.Map()
+	}
 	a.write_JSON(response_bulk_errors{
-		Errors: bulk_errs,
+		Errors: bulk,
 	})
 }
 

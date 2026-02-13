@@ -6,13 +6,8 @@ import (
 )
 
 type (
-	Map struct {
-		base
-	}
-	
-	Map_lang struct {
-		base
-	}
+	Map			list[string]
+	Map_lang	list[*Lang]
 	
 	Lang struct {
 		Key		string
@@ -20,61 +15,65 @@ type (
 	}
 	Rep			map[string]any
 	
-	base struct {
-		*map_json.Map
+	list[T any]	[]item[T]
+	
+	item[T any] struct {
+		key		string
+		value	T
 	}
 )
 
-func (b *base) init(){
-	if b.Map == nil {
-		b.Map = map_json.New()
+func (l *list[T]) Set(key string, value T){
+	for i := range *l {
+		if (*l)[i].key == key {
+			(*l)[i].value = value
+			return
+		}
 	}
+	*l = append(*l, item[T]{
+		key:	key,
+		value:	value,
+	})
 }
 
-func (b base) Has(key string) bool {
-	if b.Map == nil {
-		return false
+func (l list[T]) Has(key string) bool {
+	for _, v := range l {
+		if v.key == key {
+			return true
+		}
 	}
-	_, ok := b.Get(key)
-	return ok
+	return false
 }
 
-func (m *Map) Set(key, msg string) {
-	m.init()
-	m.Map.Set(key, msg)
-}
-
-func (m *Map_lang) Set(key string, lang *Lang) {
-	m.init()
-	m.Map.Set(key, lang)
-}
-
-func (m Map_lang) String() string {
-	if m.empty() {
-		return ""
+func (l list[T]) Map() *map_json.Map {
+	if len(l) == 0 {
+		return nil
 	}
-	keys := m.Keys()
-	s := make([]string, len(keys))
-	for i, k := range keys {
-		val, _ := m.Get(k)
-		s[i] = k + ": " + val.(*Lang).Key
+	m := map_json.New_len(len(l))
+	for _, v := range l {
+		m.Set(v.key, v.value)
 	}
-	return strings.Join(s, ", ")
+	return m
 }
 
 func (m Map) String() string {
-	if m.empty() {
+	if m == nil || len(m) == 0 {
 		return ""
 	}
-	keys := m.Keys()
-	s := make([]string, len(keys))
-	for i, k := range keys {
-		val, _ := m.Get(k)
-		s[i] = k + ": " + val.(string)
+	s := make([]string, len(m))
+	for k, v := range m {
+		s[k] = v.key+": "+v.value
 	}
 	return strings.Join(s, ", ")
 }
 
-func (b base) empty() bool {
-	return b.Map == nil || b.Len() == 0
+func (m Map_lang) String() string {
+	if m == nil || len(m) == 0 {
+		return ""
+	}
+	s := make([]string, len(m))
+	for k, v := range m {
+		s[k] = v.key+": "+v.value.Key
+	}
+	return strings.Join(s, ", ")
 }
