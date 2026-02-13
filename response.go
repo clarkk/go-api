@@ -88,7 +88,7 @@ func (a *Request) Errors(status int, errs errin.Map){
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
 	a.write_JSON(response_error{
-		Error: errs.Map(),
+		Error: errs.Output(),
 	})
 }
 
@@ -101,7 +101,7 @@ func (a *Request) Warnings(status int, errs errin.Map){
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
 	a.write_JSON(response_error{
-		Warning: errs.Map(),
+		Warning: errs.Output(),
 	})
 }
 
@@ -115,7 +115,7 @@ func (a *Request) Bulk_errors(status int, bulk_errs []errin.Map){
 	a.write_header(status)
 	bulk := make([]*map_json.Map, len(bulk_errs))
 	for i, errs := range bulk_errs {
-		bulk[i] = errs.Map()
+		bulk[i] = errs.Output()
 	}
 	a.write_JSON(response_bulk_errors{
 		Errors: bulk,

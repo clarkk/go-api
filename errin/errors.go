@@ -45,7 +45,7 @@ func (l list[T]) Has(key string) bool {
 	return false
 }
 
-func (l list[T]) Map() *map_json.Map {
+func (l list[T]) Output() *map_json.Map {
 	if len(l) == 0 {
 		return nil
 	}
