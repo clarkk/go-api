@@ -18,18 +18,18 @@ var gzip_pool = sync.Pool{
 
 type (
 	Response_result struct {
-		Result		any 		`json:"result"`
-		Limit		*Limit		`json:"limit,omitempty"`
+		Result		any 				`json:"result"`
+		Limit		*Limit				`json:"limit,omitempty"`
 	}
 	
 	response_error struct {
-		Error 		List		`json:"error,omitempty"`
-		Warning 	List		`json:"warning,omitempty"`
+		Error 		*errin.Map			`json:"error,omitempty"`
+		Warning 	*errin.Map			`json:"warning,omitempty"`
 	}
 	
 	response_bulk_errors struct {
-		Errors 			[]*List		`json:"errors,omitempty"`
-		Semantic_errors []*string	`json:"semantic_errors,omitempty"`
+		Errors 			[]*errin.Map	`json:"errors,omitempty"`
+		Semantic_errors []*string		`json:"semantic_errors,omitempty"`
 	}
 )
 
@@ -103,7 +103,7 @@ func (a *Request) Warnings(status int, errs *errin.Map){
 }
 
 //	Errors JSON response
-func (a *Request) Bulk_errors(status int, bulk_errs []map[string]error){
+func (a *Request) Bulk_errors(status int, bulk_errs []*errin.Map){
 	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")

@@ -26,7 +26,7 @@ type (
 		
 		body_received	[]byte
 		
-		header 			List
+		header 			map[string]string
 		
 		deferred 		func(*Request)
 	}
@@ -34,8 +34,6 @@ type (
 	Input interface {
 		Required() error
 	}
-	
-	List map[string]string
 )
 
 func Input_required_error(s []string) error {
@@ -57,7 +55,7 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 		e:				env.Request(r),
 		handle_gzip:	handle_gzip,
 		accept_gzip:	accept_gzip(r, handle_gzip),
-		header:			List{},
+		header:			map[string]string{},
 	}
 }
 
