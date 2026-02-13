@@ -25,6 +25,12 @@ type (
 	}
 )
 
+func (b *base) init(){
+	if b.Map == nil {
+		b.Map = map_json.New()
+	}
+}
+
 func (b base) Has(key string) bool {
 	if b.Map == nil {
 		return false
@@ -34,16 +40,12 @@ func (b base) Has(key string) bool {
 }
 
 func (m *Map) Set(key, msg string) {
-	if m.Map == nil {
-		m.Map = map_json.New()
-	}
+	m.init()
 	m.Map.Set(key, msg)
 }
 
 func (m *Map_lang) Set(key string, lang *Lang) {
-	if m.Map == nil {
-		m.Map = map_json.New()
-	}
+	m.init()
 	m.Map.Set(key, lang)
 }
 
