@@ -6,8 +6,8 @@ import (
 )
 
 type (
-	Map			list[string]
-	Map_lang	list[*Lang]
+	Map			[]item[string]
+	Map_lang	[]item[*Lang]
 	
 	Lang struct {
 		Key		string
@@ -15,29 +15,49 @@ type (
 	}
 	Rep			map[string]any
 	
-	list[T any]	[]item[T]
-	
 	item[T any] struct {
 		key		string
 		value	T
 	}
 )
 
-func (l *list[T]) Set(key string, value T){
-	for i := range *l {
-		if (*l)[i].key == key {
-			(*l)[i].value = value
+func (m *Map) Set(key, value string) {
+	for i := range *m {
+		if (*m)[i].key == key {
+			(*m)[i].value = value
 			return
 		}
 	}
-	*l = append(*l, item[T]{
+	*m = append(*m, item[string]{
 		key:	key,
 		value:	value,
 	})
 }
 
-func (l list[T]) Has(key string) bool {
-	for _, v := range l {
+func (m *Map_lang) Set(key string, value *Lang) {
+	for i := range *m {
+		if (*m)[i].key == key {
+			(*m)[i].value = value
+			return
+		}
+	}
+	*m = append(*m, item[*Lang]{
+		key:	key,
+		value:	value,
+	})
+}
+
+func (m Map) Has(key string) bool {
+	for _, v := range m {
+		if v.key == key {
+			return true
+		}
+	}
+	return false
+}
+
+func (m Map_lang) Has(key string) bool {
+	for _, v := range m {
 		if v.key == key {
 			return true
 		}
