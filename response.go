@@ -71,8 +71,10 @@ func (a *Request) Error(status int, err error){
 	if err == nil {
 		err = fmt.Errorf(http.StatusText(status))
 	}
+	errs := map_json.New()
+	errs.Set("request", err.Error())
 	a.write_JSON(response_error{
-		Error: List{"request": err.Error()},
+		Error: errs,
 	})
 }
 
@@ -110,18 +112,8 @@ func (a *Request) Bulk_errors(status int, bulk_errs []*errin.Map){
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
 	a.write_header(status)
-	bulk := make([]*List, len(bulk_errs))
-	for i, errs := range bulk_errs {
-		if errs != nil {
-			l := make(List, len(errs))
-			for key, err := range errs {
-				l[key] = err.Error()
-			}
-			bulk[i] = &l
-		}
-	}
 	a.write_JSON(response_bulk_errors{
-		Errors: bulk,
+		Errors: bulk_errs,
 	})
 }
 
