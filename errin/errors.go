@@ -25,9 +25,9 @@ type (
 	}
 )
 
-func (b base) Empty() bool {
+/*func (b base) Empty() bool {
 	return b.Map == nil || b.Len() == 0
-}
+}*/
 
 func (b base) Has(key string) bool {
 	if b.Map == nil {
