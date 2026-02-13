@@ -8,6 +8,7 @@ import (
 	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-api/errin"
 	"github.com/clarkk/go-api/head"
+	"github.com/clarkk/go-api/map_json"
 )
 
 var gzip_pool = sync.Pool{
