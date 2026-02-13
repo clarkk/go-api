@@ -39,7 +39,7 @@ func (m *Map) Set(key, value string){
 	})
 }
 
-func (m *Map_lang) Set(key string, value *Lang) {
+func (m *Map_lang) Set(key string, value *Lang){
 	for i := range *m {
 		if (*m)[i].key == key {
 			(*m)[i].value = value
@@ -52,22 +52,16 @@ func (m *Map_lang) Set(key string, value *Lang) {
 	})
 }
 
-func (m Map) Get(key string) (string, bool){
+func (m Map) Each(fn func(key, val string)){
 	for _, v := range m {
-		if v.key == key {
-			return v.value, true
-		}
+		fn(v.key, v.value)
 	}
-	return "", false
 }
 
-func (m Map_lang) Get(key string) (*Lang, bool) {
+func (m Map_lang) Each(fn func(key string, val *Lang)){
 	for _, v := range m {
-		if v.key == key {
-			return v.value, true
-		}
+		fn(v.key, v.value)
 	}
-	return nil, false
 }
 
 func (m Map) Has(key string) bool {
