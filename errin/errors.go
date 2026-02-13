@@ -1,7 +1,6 @@
 package errin
 
 import (
-	"fmt"
 	"strings"
 	"github.com/clarkk/go-api/map_json"
 )
