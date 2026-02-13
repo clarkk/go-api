@@ -72,7 +72,7 @@ func (a *Request) Error(status int, err error){
 	if err == nil {
 		err = fmt.Errorf(http.StatusText(status))
 	}
-	errs := map_json.New()
+	errs := &errin.Map{}
 	errs.Set("request", err.Error())
 	a.write_JSON(response_error{
 		Error: errs,
