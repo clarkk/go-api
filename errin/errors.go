@@ -45,15 +45,26 @@ func (l list[T]) Has(key string) bool {
 	return false
 }
 
-func (l list[T]) Output() *map_json.Map {
-	if len(l) == 0 {
+func (m Map) Output() *map_json.Map {
+	if len(m) == 0 {
 		return nil
 	}
-	m := map_json.New_len(len(l))
-	for _, v := range l {
-		m.Set(v.key, v.value)
+	res := map_json.New_len(len(m))
+	for _, v := range m {
+		res.Set(v.key, v.value)
 	}
-	return m
+	return res
+}
+
+func (m Map_lang) Output() *map_json.Map {
+	if len(m) == 0 {
+		return nil
+	}
+	res := map_json.New_len(len(m))
+	for _, v := range m {
+		res.Set(v.key, v.value)
+	}
+	return res
 }
 
 func (m Map) String() string {
