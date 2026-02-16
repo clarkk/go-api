@@ -6,7 +6,7 @@ import (
 	"context"
 	"strings"
 	"net/http"
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/invalid_json"
 	"github.com/clarkk/go-util/env"

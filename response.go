@@ -5,7 +5,7 @@ import (
 	"sync"
 	"net/http"
 	"compress/gzip"
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 	"github.com/clarkk/go-api/errin"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/map_json"

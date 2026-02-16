@@ -5,7 +5,7 @@ import (
 	"time"
 	"context"
 	"net/http"
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 	"github.com/clarkk/go-api"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-util/rdb"

@@ -2,7 +2,7 @@ package api
 
 import (
 	"math"
-	"github.com/go-json-experiment/json"
+	"encoding/json/v2"
 )
 
 type (

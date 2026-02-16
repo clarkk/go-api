@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"encoding/json/v2"
 	"github.com/go-errors/errors"
-	"github.com/go-json-experiment/json"
 	"github.com/clarkk/go-util/env"
 )
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"reflect"
-	"github.com/go-json-experiment/json"
-	"github.com/go-json-experiment/json/jsontext"
+	"encoding/json/v2"
+	"encoding/json/jsontext"
 )
 
 func Fields(json_serr *json.SemanticError, b []byte, input any) error {
