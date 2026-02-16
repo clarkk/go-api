@@ -110,17 +110,29 @@ func invalid_fields_data_type(input_fields map[string]reflect.Type, body_fields 
 	err := &Type_error{}
 	for field, rt := range input_fields {
 		body_field, ok := body_fields[field]
-		if ok {
-			if rt.Kind() == reflect.Pointer {
-				rt = rt.Elem()
-			}
-			if rt != reflect.TypeOf(body_field) {
-				if err.expects == nil {
-					err.expects = map[string]string{}
-				}
-				err.expects[field] = rt.String()
+		if !ok || body_field == nil {
+			continue
+		}
+		
+		if rt.Kind() == reflect.Pointer {
+			rt = rt.Elem()
+		}
+		
+		switch reflect.TypeOf(body_field).Kind() {
+		case rt.Kind():
+			continue
+			
+		case reflect.Float64:
+			switch rt.Kind() {
+			case reflect.Int, reflect.Int64, reflect.Uint, reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
+				continue
 			}
 		}
+		
+		if err.expects == nil {
+			err.expects = map[string]string{}
+		}
+		err.expects[field] = rt.String()
 	}
 	if err.expects == nil {
 		return nil
