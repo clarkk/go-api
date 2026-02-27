@@ -10,6 +10,7 @@ import (
 const (
 	CONTENT_TYPE 		= "Content-Type"
 	TYPE_JSON 			= "application/json"
+	TYPE_JS 			= "application/javascript"
 	//TYPE_FORM_DATA 		= "application/x-www-form-urlencoded"
 	
 	ACCEPT				= "Accept"
