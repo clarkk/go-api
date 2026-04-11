@@ -62,9 +62,6 @@ func (a *Request) Redirect(status int, url string){
 		panic("HTTP header already sent. Cannot redirect to: "+url)
 	}
 	http.Redirect(a.w, a.r, url, status)
-	if a.deferred != nil {
-		a.deferred(a)
-	}
 }
 
 //	Error JSON response
