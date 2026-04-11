@@ -59,7 +59,7 @@ func (a *Request) Response(status int, content_type, res string){
 //	Redirect
 func (a *Request) Redirect(status int, url string){
 	if a.w.Sent_header() {
-		panic("HTTP header already sent. Cannot redirect to: "+url)
+		panic("HTTP header already sent. Can not redirect to: "+url)
 	}
 	http.Redirect(a.w, a.r, url, status)
 }
