@@ -160,9 +160,6 @@ func (a *Request) Sent() int {
 
 //	Send header
 func (a *Request) write_header(status int){
-	if a.accept_gzip {
-		a.Header(head.CONTENT_ENCODING, head.ENCODING_GZIP)
-	}
 	header := a.w.Header()
 	for key, value := range a.header {
 		header.Set(key, value)
@@ -172,24 +169,10 @@ func (a *Request) write_header(status int){
 
 //	Write JSON response
 func (a *Request) write_JSON(res any){
-	if a.accept_gzip {
-		gz := gzip_pool.Get().(*gzip.Writer)
-		gz.Reset(a.w)
-		defer gzip_pool.Put(gz)
-		defer gz.Close()
-		
-		if err := json.MarshalWrite(gz, res); err != nil {
-			switch t := err.(type) {
-			case *json.SemanticError:
-				panic("API response JSON marshal (gzip): "+t.Error())
-			}
-		}
-	} else {
-		if err := json.MarshalWrite(a.w, res); err != nil {
-			switch t := err.(type) {
-			case *json.SemanticError:
-				panic("API response JSON marshal: "+t.Error())
-			}
+	if err := json.MarshalWrite(a.w, res); err != nil {
+		switch t := err.(type) {
+		case *json.SemanticError:
+			panic("API response JSON marshal: "+t.Error())
 		}
 	}
 	if a.deferred != nil {
@@ -199,16 +182,7 @@ func (a *Request) write_JSON(res any){
 
 //	Write response
 func (a *Request) write(res string){
-	if a.accept_gzip {
-		gz := gzip_pool.Get().(*gzip.Writer)
-		gz.Reset(a.w)
-		defer gzip_pool.Put(gz)
-		defer gz.Close()
-		
-		gz.Write([]byte(res))
-	} else {
-		a.w.Write([]byte(res))
-	}
+	a.w.Write([]byte(res))
 	if a.deferred != nil {
 		a.deferred(a)
 	}

@@ -21,9 +21,6 @@ type (
 		r 				*http.Request
 		e				*env.Environment
 		
-		handle_gzip		bool
-		accept_gzip 	bool
-		
 		body_received	[]byte
 		
 		header 			map[string]string
@@ -45,7 +42,7 @@ func Input_required_error(s []string) error {
 	return fmt.Errorf("Required fields: %s", strings.Join(s, ", "))
 }
 
-func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
+func New(w http.ResponseWriter, r *http.Request) *Request {
 	sw, ok := w.(*serv.Writer)
 	if !ok {
 		sw = serv.NewWriter(w)
@@ -55,8 +52,6 @@ func New(w http.ResponseWriter, r *http.Request, handle_gzip bool) *Request {
 		w:				sw,
 		r:				r,
 		e:				env.Request(r),
-		handle_gzip:	handle_gzip,
-		accept_gzip:	accept_gzip(r, handle_gzip),
 		header:			map[string]string{},
 	}
 }
@@ -182,23 +177,6 @@ func (a *Request) request_JSON(post_limit int) ([]byte, int, error){
 		return nil, http.StatusUnsupportedMediaType, fmt.Errorf("POST payload must be JSON")
 	}
 	return b, 0, nil
-}
-
-func accept_gzip(r *http.Request, handle_gzip bool) bool {
-	if !handle_gzip {
-		return false
-	}
-	
-	header := r.Header.Get(head.ACCEPT_ENCODING)
-	if header == "" {
-		return false
-	}
-	for _, value := range strings.Split(header, ",") {
-		if strings.TrimSpace(value) == head.ENCODING_GZIP {
-			return true
-		}
-	}
-	return false
 }
 
 func error_request_too_large(err error) bool {
