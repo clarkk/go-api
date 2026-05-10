@@ -30,14 +30,7 @@ func main(){
   h.Subhost("subdomain.").
     Route_exact(serv.POST, "/create", 60, func(w http.ResponseWriter, r *http.Request){
       
-      /*
-        Handle GZIP encoding or let reverse proxy (nginx) handle it
-        true = handle GZIP
-        false = let reverse proxy (nginx) handle it
-      */
-      handle_gzip = false
-      
-      a := api.New(w, r, handle_gzip)
+      a := api.New(w, r)
       defer a.Recover()
       
       //  Max request post size in kb
@@ -147,10 +140,7 @@ func main(){
   h.Subhost("subdomain.").
     Route_exact(serv.POST, "/create", 60, func(w http.ResponseWriter, r *http.Request){
       
-      //  Handle GZIP encoding or let reverse proxy (nginx) handle it
-      handle_gzip = false
-      
-      a := api.New(w, r, handle_gzip)
+      a := api.New(w, r)
       defer a.Recover()
       
       //  Set a unique identifier for the user or session to avoid duplicate idempotency keys
