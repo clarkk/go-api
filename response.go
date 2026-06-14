@@ -57,10 +57,19 @@ func (a *Request) Response(status int, content_type, res string){
 }
 
 //	Redirect
-func (a *Request) Redirect(status int, url string){
+func (a *Request) Redirect2(status int, url string){
 	if a.w.Sent_header() {
 		panic("HTTP header already sent. Can not redirect to: "+url)
 	}
+	http.Redirect(a.w, a.r, url, status)
+}
+
+//	Redirect without caching
+func (a *Request) Redirect_no_caching(status int, url string){
+	if a.w.Sent_header() {
+		panic("HTTP header already sent. Can not redirect to: "+url)
+	}
+	a.w.Header().Set(head.CACHE_CONTROL, "no-store")
 	http.Redirect(a.w, a.r, url, status)
 }
 
