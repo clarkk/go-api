@@ -2,20 +2,12 @@ package api
 
 import (
 	"fmt"
-	"sync"
 	"net/http"
-	"compress/gzip"
 	"encoding/json/v2"
 	"github.com/clarkk/go-api/errin"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/map_json"
 )
-
-var gzip_pool = sync.Pool{
-	New: func() any {
-		return gzip.NewWriter(nil)
-	},
-}
 
 type (
 	Response_result struct {
