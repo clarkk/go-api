@@ -56,23 +56,6 @@ func (a *Request) Response(status int, content_type, res string){
 	a.write(res)
 }
 
-//	Redirect
-func (a *Request) Redirect(status int, url string){
-	if a.w.Sent_header() {
-		panic("HTTP header already sent. Can not redirect to: "+url)
-	}
-	http.Redirect(a.w, a.r, url, status)
-}
-
-//	Redirect without caching
-func (a *Request) Redirect_no_cache(status int, url string){
-	if a.w.Sent_header() {
-		panic("HTTP header already sent. Can not redirect to: "+url)
-	}
-	a.w.Header().Set(head.CACHE_CONTROL, "no-store")
-	http.Redirect(a.w, a.r, url, status)
-}
-
 //	Error JSON response
 func (a *Request) Errorf(status int, s string, args... any){
 	a.Error(status, fmt.Errorf(s, args...))
