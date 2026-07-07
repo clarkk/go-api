@@ -124,7 +124,9 @@ func invalid_fields_data_type(input_fields map[string]reflect.Type, body_fields 
 			
 		case reflect.Float64:
 			switch rt.Kind() {
-			case reflect.Int, reflect.Int64, reflect.Uint, reflect.Uint32, reflect.Uint64, reflect.Float32, reflect.Float64:
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+				reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+				reflect.Float32, reflect.Float64:
 				continue
 			}
 		}
