@@ -19,7 +19,7 @@ type (
 	Request struct {
 		w 				*serv.Writer
 		r 				*http.Request
-		e				*env.Environment
+		env				*env.Environment
 		
 		body_received	[]byte
 		
@@ -51,7 +51,7 @@ func New(w http.ResponseWriter, r *http.Request) *Request {
 	return &Request{
 		w:				sw,
 		r:				r,
-		e:				env.Request(r),
+		env:			env.Request(r),
 		header:			map[string]string{},
 	}
 }
@@ -71,7 +71,7 @@ func (a *Request) Recover(){
 		if !a.w.Sent_header() {
 			a.Error(code, nil)
 		}
-		a.log(code, err, a.e)
+		a.log(code, err, a.env)
 	}
 }
 
