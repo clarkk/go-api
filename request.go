@@ -109,7 +109,7 @@ func (a *Request) Request_URL_path() string {
 }
 
 //	Parse request POST body
-func (a *Request) Request(post_limit int) ([]byte, int, error){
+func (a *Request) Payload(post_limit int) ([]byte, int, error){
 	var err error
 	a.body_received, err = req.Post_limit_read(a.w, a.r, post_limit)
 	if err != nil {
@@ -177,7 +177,7 @@ func (a *Request) Idempotency_hash() (string, error){
 }
 
 func (a *Request) request_JSON(post_limit int) ([]byte, int, error){
-	b, code, err := a.Request(post_limit)
+	b, code, err := a.Payload(post_limit)
 	if err != nil {
 		return nil, code, err
 	}
