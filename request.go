@@ -122,8 +122,8 @@ func (a *Request) Payload(post_limit int) ([]byte, int, error){
 }
 
 //	Parse request POST body as JSON
-func (a *Request) Request_JSON(post_limit int, input any) (int, error){
-	b, code, err := a.request_JSON(post_limit)
+func (a *Request) Payload_JSON(post_limit int, input any) (int, error){
+	b, code, err := a.payload_JSON(post_limit)
 	if err != nil {
 		return code, err
 	}
@@ -138,8 +138,8 @@ func (a *Request) Request_JSON(post_limit int, input any) (int, error){
 }
 
 //	Parse request POST body as JSON and require input
-func (a *Request) Request_JSON_required(post_limit int, input Input) (int, error){
-	if code, err := a.Request_JSON(post_limit, input); code != 0 {
+func (a *Request) Payload_JSON_required(post_limit int, input Input) (int, error){
+	if code, err := a.Payload_JSON(post_limit, input); code != 0 {
 		return code, err
 	}
 	if err := input.Required(); err != nil {
@@ -149,8 +149,8 @@ func (a *Request) Request_JSON_required(post_limit int, input Input) (int, error
 }
 
 //	Parse request POST body as JSON array
-func (a *Request) Request_JSON_slice(post_limit int, input any) (int, error, []error){
-	b, code, err := a.request_JSON(post_limit)
+func (a *Request) Payload_JSON_slice(post_limit int, input any) (int, error, []error){
+	b, code, err := a.payload_JSON(post_limit)
 	if err != nil {
 		return code, err, nil
 	}
@@ -176,7 +176,7 @@ func (a *Request) Idempotency_hash() (string, error){
 	return hash.SHA256_hex(append([]byte(s+":"), a.body_received...)), nil
 }
 
-func (a *Request) request_JSON(post_limit int) ([]byte, int, error){
+func (a *Request) payload_JSON(post_limit int) ([]byte, int, error){
 	b, code, err := a.Payload(post_limit)
 	if err != nil {
 		return nil, code, err
