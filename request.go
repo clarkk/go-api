@@ -56,6 +56,14 @@ func New(w http.ResponseWriter, r *http.Request) *Request {
 	}
 }
 
+func (a *Request) Env() *env.Environment {
+	return a.env
+}
+
+func (a *Request) Set_env(e *env.Environment){
+	a.env = e
+}
+
 //	Recover from panic inside route handler
 func (a *Request) Recover(){
 	if r := recover(); r != nil {
