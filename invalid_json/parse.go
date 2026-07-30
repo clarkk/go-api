@@ -8,6 +8,12 @@ import (
 	"encoding/json/jsontext"
 )
 
+type json_typer interface {
+	JSON_type() reflect.Type
+}
+
+var json_typer_type = reflect.TypeFor[json_typer]()
+
 func Fields(json_serr *json.SemanticError, b []byte, input any) error {
 	body_fields, serr := request_fields(b)
 	if serr != nil {
@@ -114,16 +120,16 @@ func invalid_fields_data_type(input_fields map[string]reflect.Type, body_fields 
 			continue
 		}
 		
-		if rt.Kind() == reflect.Pointer {
-			rt = rt.Elem()
+		expected_type	:= expected_json_type(rt)
+		actual_kind		:= reflect.TypeOf(body_field).Kind()
+		expected_kind	:= expected_type.Kind()
+		
+		if actual_kind == expected_kind {
+			continue
 		}
 		
-		switch reflect.TypeOf(body_field).Kind() {
-		case rt.Kind():
-			continue
-			
-		case reflect.Float64:
-			switch rt.Kind() {
+		if actual_kind == reflect.Float64 {
+			switch expected_kind {
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 				reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
 				reflect.Float32, reflect.Float64:
@@ -132,14 +138,35 @@ func invalid_fields_data_type(input_fields map[string]reflect.Type, body_fields 
 		}
 		
 		if err.expects == nil {
-			err.expects = map[string]string{}
+			err.expects = make(map[string]string)
 		}
-		err.expects[field] = rt.String()
+		
+		err.expects[field] = expected_type.String()
 	}
 	if err.expects == nil {
 		return nil
 	}
 	return err
+}
+
+func expected_json_type(rt reflect.Type) reflect.Type {
+	for rt.Kind() == reflect.Pointer {
+		rt = rt.Elem()
+	}
+	
+	if rt.Implements(json_typer_type) {
+		expected := reflect.New(rt).
+			Elem().
+			Interface().
+			(json_typer).
+			JSON_type()
+			
+		if expected != nil {
+			return expected
+		}
+	}
+	
+	return rt
 }
 
 func invalid_data_type(err *json.SemanticError, b []byte) *Semantic_error {
