@@ -3,6 +3,7 @@ package idem
 import (
 	"fmt"
 	"time"
+	"strconv"
 	"context"
 	"net/http"
 	"encoding/json/v2"
@@ -131,7 +132,7 @@ func (d *Idempotency) Response_JSON(code int, res any){
 	s := string(b)
 	if d.store_response(code){
 		t := time_unix()
-		go d.store_redis(code, head.TYPE_JSON, s, t)
+		d.store_redis(code, head.TYPE_JSON, s, t)
 		d.headers(false, t)
 	}
 	d.a.Response(code, head.TYPE_JSON, s)
@@ -141,7 +142,7 @@ func (d *Idempotency) Response_JSON(code int, res any){
 func (d *Idempotency) Response(code int, content_type, res string){
 	if d.store_response(code){
 		t := time_unix()
-		go d.store_redis(code, content_type, res, t)
+		d.store_redis(code, content_type, res, t)
 		d.headers(false, t)
 	}
 	d.a.Response(code, content_type, res)
@@ -150,11 +151,7 @@ func (d *Idempotency) Response(code int, content_type, res string){
 func (d *Idempotency) headers(replay bool, t int64){
 	d.a.Header(HEADER_KEY, d.key)
 	d.a.Header(HEADER_TIME, head.GMT_unix_time(t))
-	if replay {
-		d.a.Header(HEADER_REPLAYED, "true")
-	} else {
-		d.a.Header(HEADER_REPLAYED, "false")
-	}
+	d.a.Header(HEADER_REPLAYED, strconv.FormatBool(replay))
 	d.a.Header(HEADER_EXPIRY, head.GMT_unix_time(t + EXPIRES))
 }
 

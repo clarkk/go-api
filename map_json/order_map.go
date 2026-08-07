@@ -44,6 +44,9 @@ func (m *Map) Set(key string, value any){
 }
 
 func (m *Map) Get(key string) (any, bool){
+	if m == nil {
+		return nil, false
+	}
 	if i, ok := m.index[key]; ok {
 		return m.items[i].value, true
 	}
@@ -62,10 +65,17 @@ func (m *Map) Keys() []string {
 }
 
 func (m *Map) Len() int {
+	if m == nil {
+		return 0
+	}
 	return len(m.items)
 }
 
 func (m *Map) MarshalJSON() ([]byte, error){
+	if m == nil {
+		return []byte("null"), nil
+	}
+	
 	var b bytes.Buffer
 	enc := jsontext.NewEncoder(&b)
 	

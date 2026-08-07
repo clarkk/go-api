@@ -105,7 +105,7 @@ func (m Map_lang) Output() *map_json.Map {
 }
 
 func (m Map) String() string {
-	if m == nil || len(m) == 0 {
+	if len(m) == 0 {
 		return ""
 	}
 	s := make([]string, len(m))
@@ -116,7 +116,7 @@ func (m Map) String() string {
 }
 
 func (m Map_lang) String() string {
-	if m == nil || len(m) == 0 {
+	if len(m) == 0 {
 		return ""
 	}
 	s := make([]string, len(m))
