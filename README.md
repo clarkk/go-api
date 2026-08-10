@@ -4,6 +4,7 @@
 - [go-api](#go-api) Lightweight JSON API for HTTP server
 - [go-api/errin](#go-apierrin) Simple request validation error handling
 - [go-api/idem](#go-apiidem) Lightweight API idempotency cache (width Redis)
+- [go-api/map_json](#go-apimap_json) Ordered maps in JSON responses
 
 # go-api
 Lightweight JSON API for HTTP server with idempotency handling and entity-tag (ETag) to identify a specific version of a resource.
@@ -72,8 +73,11 @@ func main(){
 ```
 
 # go-api/errin
-Simple way to handle multiple input validating errors simultaneously and return all errors to the client
+Simple error maps for collecting and returning multiple input validation errors at once.
 
+Instead of returning on the first validation error, `errin` lets you collect errors for multiple fields and return them together.
+
+## Basic usage
 ```
 package main
 
@@ -82,9 +86,8 @@ import (
   "github.com/clarkk/go-api/errin"
 )
 
-func main(){
+func main() {
   if errs := validate_input(); errs != nil {
-    //  Validating failed
     fmt.Println(errs)
   }
 }
@@ -95,8 +98,67 @@ func validate_input() errin.Map {
   errs.Set("name", "Name is invalid")
   errs.Set("email", "E-mail is invalid")
   
+  if len(errs) == 0 {
+    return nil
+  }
+  
   return errs
 }
+```
+
+A `Map` stores one error message per key. Calling `Set` with an existing key replaces its value.
+
+## Checking for errors
+
+Use `Has` to check whether a specific key has an error:
+```
+if errs.Has("email") {
+  // Email validation failed
+}
+```
+
+Use `Each` to iterate over all errors:
+```
+errs.Each(func(key, value string) {
+  fmt.Println(key, value)
+})
+```
+
+## JSON output
+
+`Output` converts the error map to a `map_json.Map`, an ordered map that preserves insertion order, making it suitable for use in an API response.
+```
+output := errs.Output()
+```
+
+An empty map returns `nil`.
+
+Example:
+```
+errs.Set("name", "Name is invalid")
+errs.Set("email", "E-mail is invalid")
+
+fmt.Println(errs.Output())
+```
+
+Output:
+```
+{
+  "name": "Name is invalid",
+  "email": "E-mail is invalid"
+}
+```
+
+## String representation
+
+`Map` implements `fmt.Stringer`:
+```
+fmt.Println(errs)
+```
+
+Output:
+```
+name: Name is invalid, email: E-mail is invalid
 ```
 
 # go-api/idem
@@ -172,3 +234,143 @@ func main(){
   h.Run()
 }
 ```
+
+# go-api/map_json
+
+Ordered JSON objects for Go.
+
+`map_json.Map` provides a simple key/value structure that behaves like a JSON object while preserving the order in which keys are added.
+
+Unlike a regular Go map, `map_json.Map` guarantees deterministic key ordering when marshaling to JSON.
+
+## Basic usage
+
+```
+package main
+
+import (
+  "fmt"
+  
+  "github.com/clarkk/go-api/map_json"
+)
+
+func main() {
+  m := map_json.New()
+  
+  m.Set("name", "John")
+  m.Set("email", "john@example.com")
+  m.Set("age", 42)
+  
+  data, err := m.MarshalJSON()
+  if err != nil {
+    panic(err)
+  }
+  
+  fmt.Println(string(data))
+}
+```
+
+Output:
+```
+{
+  "name": "John",
+  "email": "john@example.com",
+  "age": 42
+}
+```
+
+The keys are serialized in the same order they were added.
+
+## Setting values
+
+Values can be any Go value that can be encoded as JSON:
+```
+m.Set("string", "value")
+m.Set("number", 123)
+m.Set("boolean", true)
+m.Set("null", nil)
+m.Set("array", []string{"one", "two"})
+m.Set("object", map[string]any{
+  "foo": "bar",
+})
+```
+
+Calling Set with an existing key updates its value without changing its position:
+```
+m.Set("name", "John")
+m.Set("email", "john@example.com")
+m.Set("name", "Jane")
+```
+
+The resulting order remains:
+```
+name, email
+```
+
+## Getting values
+
+Use `Get` to retrieve a value:
+```
+value, ok := m.Get("name")
+if ok {
+  fmt.Println(value)
+}
+```
+
+`Get` returns `(nil, false)` when the key does not exist.
+
+It is also safe to call `Get` on a nil `*Map`:
+```
+var m *map_json.Map
+value, ok := m.Get("name")
+
+// value == nil
+// ok == false
+```
+
+## Keys
+
+Use `Keys` to get all keys in insertion order:
+```
+keys := m.Keys()
+
+fmt.Println(keys)
+```
+
+Output:
+```
+[name email age]
+```
+
+For a nil map, `Keys` returns `nil`.
+
+## Length
+
+Use `Len` to get the number of entries:
+```
+fmt.Println(m.Len())
+```
+
+A nil map returns `0`.
+
+## JSON marshaling
+
+`Map` implements `json.Marshaler`, so it can be passed directly to `encoding/json`:
+```
+data, err := json.Marshal(m)
+```
+
+It can also be embedded in another structure:
+```
+type Response struct {
+  Data *map_json.Map `json:"data"`
+}
+
+response := Response{
+  Data: m,
+}
+
+data, err := json.Marshal(response)
+```
+
+The resulting JSON preserves the insertion order of the keys in `Map`.
