@@ -241,8 +241,6 @@ Ordered JSON objects.
 
 `map_json.Map` provides a simple key/value structure that behaves like a JSON object while preserving the order in which keys are added.
 
-Unlike a regular Go map, `map_json.Map` guarantees deterministic key ordering when marshaling to JSON.
-
 ## Basic usage
 
 ```
@@ -250,7 +248,6 @@ package main
 
 import (
   "fmt"
-  
   "github.com/clarkk/go-api/map_json"
 )
 
