@@ -295,7 +295,7 @@ m.Set("object", map[string]any{
 })
 ```
 
-Calling Set with an existing key updates its value without changing its position:
+Calling `Set` with an existing key updates its value **without** changing its position:
 ```
 m.Set("name", "John")
 m.Set("email", "john@example.com")
