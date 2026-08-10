@@ -18,6 +18,7 @@ type (
 	response_error struct {
 		Error 		*map_json.Map			`json:"error,omitempty"`
 		Warning 	*map_json.Map			`json:"warning,omitempty"`
+		Limit		*Limit					`json:"limit,omitempty"`
 	}
 	
 	response_bulk_errors struct {
@@ -55,6 +56,11 @@ func (a *Request) Errorf(status int, s string, args... any){
 
 //	Error JSON response
 func (a *Request) Error(status int, err error){
+	a.Error_limit(status, err, nil)
+}
+
+//	Error JSON response with limit
+func (a *Request) Error_limit(status int, err error, limit *Limit){
 	if a.w.Sent_header() {
 		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
@@ -67,7 +73,8 @@ func (a *Request) Error(status int, err error){
 	errs := map_json.New()
 	errs.Set("request", err.Error())
 	a.write_JSON(response_error{
-		Error: errs,
+		Error:	errs,
+		Limit:	limit,
 	})
 }
 
