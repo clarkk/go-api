@@ -12,18 +12,18 @@ import (
 type (
 	Response_result struct {
 		Result		any 					`json:"result"`
-		Limit		*Limit					`json:"limit,omitempty"`
+		Limit		*Limit					`json:"limit,omitzero"`
 	}
 	
 	response_error struct {
-		Error 		*map_json.Map			`json:"error,omitempty"`
-		Warning 	*map_json.Map			`json:"warning,omitempty"`
-		Limit		*Limit					`json:"limit,omitempty"`
+		Error 		*map_json.Map			`json:"error,omitzero"`
+		Warning 	*map_json.Map			`json:"warning,omitzero"`
+		Limit		*Limit					`json:"limit,omitzero"`
 	}
 	
 	response_bulk_errors struct {
-		Errors 			[]*map_json.Map		`json:"errors,omitempty"`
-		Semantic_errors []*string			`json:"semantic_errors,omitempty"`
+		Errors 			[]*map_json.Map		`json:"errors,omitzero"`
+		Semantic_errors []*string			`json:"semantic_errors,omitzero"`
 	}
 )
 
