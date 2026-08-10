@@ -31,6 +31,7 @@ func New_len(length int) *Map {
 	}
 }
 
+//	Set key/value entry
 func (m *Map) Set(key string, value any){
 	if i, ok := m.index[key]; ok {
 		m.items[i].value = value
@@ -43,6 +44,7 @@ func (m *Map) Set(key string, value any){
 	}
 }
 
+//	Get key/value entry
 func (m *Map) Get(key string) (any, bool){
 	if m == nil {
 		return nil, false
@@ -53,6 +55,7 @@ func (m *Map) Get(key string) (any, bool){
 	return nil, false
 }
 
+//	Get all keys in insertion order
 func (m *Map) Keys() []string {
 	if m == nil {
 		return nil
@@ -64,6 +67,7 @@ func (m *Map) Keys() []string {
 	return keys
 }
 
+//	Get number of entries
 func (m *Map) Len() int {
 	if m == nil {
 		return 0
@@ -71,6 +75,7 @@ func (m *Map) Len() int {
 	return len(m.items)
 }
 
+//	Marshals entries to JSON while preserving insertion order
 func (m *Map) MarshalJSON() ([]byte, error){
 	if m == nil {
 		return []byte("null"), nil

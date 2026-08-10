@@ -237,7 +237,7 @@ func main(){
 
 # go-api/map_json
 
-Ordered JSON objects for Go.
+Ordered JSON objects.
 
 `map_json.Map` provides a simple key/value structure that behaves like a JSON object while preserving the order in which keys are added.
 
