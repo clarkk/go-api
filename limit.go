@@ -2,6 +2,7 @@ package api
 
 import (
 	"math"
+	"errors"
 	"encoding/json/v2"
 )
 
@@ -19,17 +20,17 @@ type (
 	}
 )
 
-func NewLimit(offset, limit int) (*Limit, bool){
+func NewLimit(offset, limit int) (*Limit, error){
 	if limit < 0 || limit > math.MaxUint8 {
-		return nil, true
+		return nil, errors.New("Limit is out of range")
 	}
 	if offset < 0 || offset > math.MaxUint32 {
-		return nil, true
+		return nil, errors.New("Offset is out of range")
 	}
 	return &Limit{
 		offset:	uint32(offset),
 		limit:	uint8(limit),
-	}, false
+	}, nil
 }
 
 func (l *Limit) Offset() uint32 {

@@ -1,8 +1,10 @@
 package api
 
 import (
+	"io"
 	"fmt"
 	"path"
+	"errors"
 	"context"
 	"strings"
 	"net/http"
@@ -22,8 +24,6 @@ type (
 		env				*env.Environment
 		
 		body_received	[]byte
-		
-		header 			map[string]string
 		
 		deferred 		func(*Request)
 	}
@@ -49,10 +49,9 @@ func New(w http.ResponseWriter, r *http.Request) *Request {
 	}
 	
 	return &Request{
-		w:				sw,
-		r:				r,
-		env:			env.Request(r),
-		header:			map[string]string{},
+		w:		sw,
+		r:		r,
+		env:	env.Request(r),
 	}
 }
 
@@ -66,21 +65,31 @@ func (a *Request) Set_env(e *env.Environment){
 
 //	Recover from panic inside route handler
 func (a *Request) Recover(){
-	if r := recover(); r != nil {
-		var err error
-		switch t := r.(type) {
-		case error:
-			err = t
-		default:
-			err = fmt.Errorf("panic: %v", t)
-		}
-		
-		code := http.StatusInternalServerError
-		if !a.w.Sent_header() {
-			a.Error(code, nil)
-		}
-		a.log(code, err, a.env)
+	r := recover()
+	if r == nil {
+		return
 	}
+	
+	if r == http.ErrAbortHandler {
+		panic(r)
+	}
+	
+	var err error
+	switch t := r.(type) {
+	case error:
+		err = t
+	default:
+		err = fmt.Errorf("panic: %v", t)
+	}
+	
+	code := http.StatusInternalServerError
+	a.log(code, err, a.env)
+	
+	if a.w.Sent_header() {
+		panic(http.ErrAbortHandler)
+	}
+	
+	a.Error(code, nil)
 }
 
 //	Set deferred function
@@ -113,10 +122,21 @@ func (a *Request) Payload(post_limit int) ([]byte, int, error){
 	var err error
 	a.body_received, err = req.Post_limit_read(a.w, a.r, post_limit)
 	if err != nil {
-		if error_request_too_large(err) {
+		var limit_error *http.MaxBytesError
+		if errors.As(err, &limit_error){
 			return nil, http.StatusRequestEntityTooLarge, fmt.Errorf("POST payload too large")
 		}
-		return nil, http.StatusInternalServerError, fmt.Errorf("Unable to read request body")
+		if errors.Is(err, io.ErrUnexpectedEOF){
+			return nil, http.StatusBadRequest, fmt.Errorf("Incomplete request body")
+		}
+		if errors.Is(err, context.Canceled) || errors.Is(a.Context().Err(), context.Canceled){
+			panic(http.ErrAbortHandler)
+		}
+		
+		code := http.StatusInternalServerError
+		a.log(code, fmt.Errorf("Unable to read request body: %v", err), a.env)
+		
+		return nil, code, fmt.Errorf("Unable to read request body")
 	}
 	return a.body_received, 0, nil
 }
@@ -185,8 +205,4 @@ func (a *Request) payload_JSON(post_limit int) ([]byte, int, error){
 		return nil, http.StatusUnsupportedMediaType, fmt.Errorf("POST payload must be JSON")
 	}
 	return b, 0, nil
-}
-
-func error_request_too_large(err error) bool {
-	return err.Error() == "http: request body too large"
 }

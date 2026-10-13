@@ -32,7 +32,7 @@ func (a *Request) Header(key, value string){
 	if a.w.Sent_header() {
 		panic("Header already sent. Can not set header: "+key)
 	}
-	a.header[key] = value
+	a.w.Header().Set(key, value)
 }
 
 //	Send JSON response (encode output)
@@ -62,7 +62,6 @@ func (a *Request) Error(status int, err error){
 //	Error JSON response with limit
 func (a *Request) Error_limit(status int, err error, limit *Limit){
 	if a.w.Sent_header() {
-		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
@@ -81,7 +80,6 @@ func (a *Request) Error_limit(status int, err error, limit *Limit){
 //	Errors JSON response
 func (a *Request) Errors(status int, errs errin.Map){
 	if a.w.Sent_header() {
-		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
@@ -94,7 +92,6 @@ func (a *Request) Errors(status int, errs errin.Map){
 //	Warnings JSON response
 func (a *Request) Warnings(status int, errs errin.Map){
 	if a.w.Sent_header() {
-		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
@@ -107,7 +104,6 @@ func (a *Request) Warnings(status int, errs errin.Map){
 //	Errors JSON response
 func (a *Request) Bulk_errors(status int, bulk_errs []errin.Map){
 	if a.w.Sent_header() {
-		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
@@ -124,7 +120,6 @@ func (a *Request) Bulk_errors(status int, bulk_errs []errin.Map){
 //	Errors JSON response
 func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
 	if a.w.Sent_header() {
-		//	TODO: handle panics/errors AFTER headers are sent
 		panic("HTTP header already sent")
 	}
 	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
@@ -151,20 +146,13 @@ func (a *Request) Sent() int {
 
 //	Send header
 func (a *Request) write_header(status int){
-	header := a.w.Header()
-	for key, value := range a.header {
-		header.Set(key, value)
-	}
 	a.w.WriteHeader(status)
 }
 
 //	Write JSON response
 func (a *Request) write_JSON(res any){
 	if err := json.MarshalWrite(a.w, res); err != nil {
-		switch t := err.(type) {
-		case *json.SemanticError:
-			panic("API response JSON marshal: "+t.Error())
-		}
+		panic(fmt.Errorf("API response JSON: %w", err))
 	}
 	if a.deferred != nil {
 		a.deferred(a)
