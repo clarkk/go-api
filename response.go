@@ -2,8 +2,12 @@ package api
 
 import (
 	"fmt"
+	"errors"
+	"syscall"
+	"context"
 	"net/http"
 	"encoding/json/v2"
+	"encoding/json/jsontext"
 	"github.com/clarkk/go-api/errin"
 	"github.com/clarkk/go-api/head"
 	"github.com/clarkk/go-api/map_json"
@@ -64,14 +68,12 @@ func (a *Request) Error_limit(status int, err error, limit *Limit){
 	if a.w.Sent_header() {
 		panic("HTTP header already sent")
 	}
-	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-	a.write_header(status)
 	if err == nil {
-		err = fmt.Errorf(http.StatusText(status))
+		err = errors.New(http.StatusText(status))
 	}
 	errs := map_json.New()
 	errs.Set("request", err.Error())
-	a.write_JSON(response_error{
+	a.Response_JSON(status, response_error{
 		Error:	errs,
 		Limit:	limit,
 	})
@@ -82,9 +84,7 @@ func (a *Request) Errors(status int, errs errin.Map){
 	if a.w.Sent_header() {
 		panic("HTTP header already sent")
 	}
-	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-	a.write_header(status)
-	a.write_JSON(response_error{
+	a.Response_JSON(status, response_error{
 		Error: errs.Output(),
 	})
 }
@@ -94,9 +94,7 @@ func (a *Request) Warnings(status int, errs errin.Map){
 	if a.w.Sent_header() {
 		panic("HTTP header already sent")
 	}
-	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-	a.write_header(status)
-	a.write_JSON(response_error{
+	a.Response_JSON(status, response_error{
 		Warning: errs.Output(),
 	})
 }
@@ -106,13 +104,11 @@ func (a *Request) Bulk_errors(status int, bulk_errs []errin.Map){
 	if a.w.Sent_header() {
 		panic("HTTP header already sent")
 	}
-	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-	a.write_header(status)
 	bulk := make([]*map_json.Map, len(bulk_errs))
 	for i, errs := range bulk_errs {
 		bulk[i] = errs.Output()
 	}
-	a.write_JSON(response_bulk_errors{
+	a.Response_JSON(status, response_bulk_errors{
 		Errors: bulk,
 	})
 }
@@ -122,8 +118,6 @@ func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
 	if a.w.Sent_header() {
 		panic("HTTP header already sent")
 	}
-	a.Header(head.CONTENT_TYPE, head.TYPE_JSON)
-	a.write_header(status)
 	bulk := make([]*string, len(bulk_errs))
 	for i, err := range bulk_errs {
 		if err != nil {
@@ -131,7 +125,7 @@ func (a *Request) Bulk_semantic_errors(status int, bulk_errs []error){
 			bulk[i] = &s
 		}
 	}
-	a.write_JSON(response_bulk_errors{
+	a.Response_JSON(status, response_bulk_errors{
 		Semantic_errors: bulk,
 	})
 }
@@ -152,17 +146,41 @@ func (a *Request) write_header(status int){
 //	Write JSON response
 func (a *Request) write_JSON(res any){
 	if err := json.MarshalWrite(a.w, res); err != nil {
-		panic(fmt.Errorf("API response JSON: %w", err))
+		var (
+			semanticErr *json.SemanticError
+			syntaxErr *jsontext.SyntacticError
+		)
+		if errors.As(err, &semanticErr) || errors.As(err, &syntaxErr) {
+			panic(fmt.Errorf("API response JSON marshal: %w", err))
+		}
+		
+		if disconnect_error(err) {
+			panic(http.ErrAbortHandler)
+		}
+		
+		panic(fmt.Errorf("API response JSON write: %w", err))
 	}
+	a.exec_deferred()
+}
+
+//	Write response
+func (a *Request) write(res string){
+	if _, err := a.w.Write([]byte(res)); err != nil {
+		if disconnect_error(err) {
+			panic(http.ErrAbortHandler)
+		}
+		
+		panic(fmt.Errorf("API response write: %w", err))
+	}
+	a.exec_deferred()
+}
+
+func (a *Request) exec_deferred(){
 	if a.deferred != nil {
 		a.deferred(a)
 	}
 }
 
-//	Write response
-func (a *Request) write(res string){
-	a.w.Write([]byte(res))
-	if a.deferred != nil {
-		a.deferred(a)
-	}
+func disconnect_error(err error) bool {
+	return errors.Is(err, context.Canceled) || errors.Is(err, syscall.EPIPE) || errors.Is(err, syscall.ECONNRESET)
 }

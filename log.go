@@ -11,8 +11,8 @@ import (
 
 //	Error JSON response and log unexpected error
 func (a *Request) Error_log(code int, err error, e *env.Environment){
-	a.Error(code, nil)
 	a.log(code, err, e)
+	a.Error(code, nil)
 }
 
 func (a *Request) log(code int, err error, e *env.Environment){
@@ -34,7 +34,7 @@ func (a *Request) log(code int, err error, e *env.Environment){
 		a.body_received,
 		errors.Wrap(err, 2).ErrorStack(),
 	)
-	log.Printf(tab_indentation(s))
+	log.Print(tab_indentation(s))
 }
 
 func tab_indentation(s string) string {

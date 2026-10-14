@@ -122,6 +122,9 @@ func (a *Request) Payload(post_limit int) ([]byte, int, error){
 	var err error
 	a.body_received, err = req.Post_limit_read(a.w, a.r, post_limit)
 	if err != nil {
+		if disconnect_error(err) || errors.Is(a.Context().Err(), context.Canceled) {
+			panic(http.ErrAbortHandler)
+		}
 		var limit_error *http.MaxBytesError
 		if errors.As(err, &limit_error){
 			return nil, http.StatusRequestEntityTooLarge, fmt.Errorf("POST payload too large")
@@ -129,12 +132,9 @@ func (a *Request) Payload(post_limit int) ([]byte, int, error){
 		if errors.Is(err, io.ErrUnexpectedEOF){
 			return nil, http.StatusBadRequest, fmt.Errorf("Incomplete request body")
 		}
-		if errors.Is(err, context.Canceled) || errors.Is(a.Context().Err(), context.Canceled){
-			panic(http.ErrAbortHandler)
-		}
 		
 		code := http.StatusInternalServerError
-		a.log(code, fmt.Errorf("Unable to read request body: %v", err), a.env)
+		a.log(code, fmt.Errorf("Unable to read request body: %w", err), a.env)
 		
 		return nil, code, fmt.Errorf("Unable to read request body")
 	}
@@ -197,12 +197,8 @@ func (a *Request) Idempotency_hash() (string, error){
 }
 
 func (a *Request) payload_JSON(post_limit int) ([]byte, int, error){
-	b, code, err := a.Payload(post_limit)
-	if err != nil {
-		return nil, code, err
-	}
 	if !head.Request_JSON(a.r) {
 		return nil, http.StatusUnsupportedMediaType, fmt.Errorf("POST payload must be JSON")
 	}
-	return b, 0, nil
+	return a.Payload(post_limit)
 }
