@@ -176,8 +176,8 @@ func (a *Request) write(res string){
 }
 
 func (a *Request) exec_deferred(){
-	if a.deferred != nil {
-		a.deferred(a)
+	for _, fn := range a.deferred {
+		fn(a)
 	}
 }
 

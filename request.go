@@ -25,7 +25,7 @@ type (
 		
 		body_received	[]byte
 		
-		deferred 		func(*Request)
+		deferred 		[]func(*Request)
 	}
 	
 	Input interface {
@@ -94,7 +94,7 @@ func (a *Request) Recover(){
 
 //	Set deferred function
 func (a *Request) Defer(fn func(*Request)){
-	a.deferred = fn
+	a.deferred = append(a.deferred, fn)
 }
 
 //	Get request method
