@@ -1,21 +1,32 @@
 package auth_hmac
 
 import (
+	"io"
 	"fmt"
 	"time"
+	"bytes"
 	"strings"
 	"context"
 	"strconv"
+	"net/http"
+	"crypto/hmac"
+	"github.com/clarkk/go-util/hash"
 )
 
+const expiry_multiplier = 3
+
 type Auth struct {
+	API_key		string
+	Request		*http.Request
+	Hash_prefix	string
 	Expires		int
-	Use_nonce	func(ctx context.Context, api_key, nonce string, timestamp int64, expire int) (bool, error)
+	Use_nonce	func(ctx context.Context, hash string, expire int) (bool, error)
 	time		int64
+	nonce		string
 }
 
-func (a *Auth) Validate_time(header string) error {
-	s := strings.TrimSpace(header)
+func (a *Auth) Validate_time(header_name string) error {
+	s := strings.TrimSpace(a.Request.Header.Get(header_name))
 	if s == "" {
 		return fmt.Errorf("Timestamp is missing")
 	}
@@ -35,19 +46,71 @@ func (a *Auth) Validate_time(header string) error {
 	return nil
 }
 
-func (a *Auth) Validate_nonce(ctx context.Context, api_key, header string) error {
-	nonce := strings.TrimSpace(header)
-	if nonce == "" {
+func (a *Auth) Validate_nonce(header_name string) error {
+	a.nonce = strings.TrimSpace(a.Request.Header.Get(header_name))
+	if a.nonce == "" {
 		return fmt.Errorf("Nonce is missing")
 	}
+	return nil
+}
+
+func (a *Auth) Validate_signature(id uint64, api_secret, received_signature string) (bool, int, error){
+	var (
+		received	int
+		b			bytes.Buffer
+	)
 	
-	ok, err := a.Use_nonce(ctx, api_key, nonce, a.time, a.Expires * 3)
+	b.WriteString(a.Request.Host)
+	b.WriteString(a.Request.URL.Path)
+	
+	if a.Request.URL.RawQuery != "" {
+		b.WriteByte('?')
+		b.WriteString(a.Request.URL.RawQuery)
+	}
+	
+	if a.Request.Method != http.MethodGet {
+		body, err := io.ReadAll(a.Request.Body)
+		if err != nil {
+			return false, 0, err
+		}
+		a.Request.Body.Close()
+		
+		received = len(body)
+		
+		b.Write(body)
+		a.Request.Body = io.NopCloser(bytes.NewReader(body))
+	}
+	
+	b.WriteString(strconv.FormatUint(id, 10))
+	b.WriteString(a.API_key)
+	b.WriteString(strconv.FormatInt(a.time, 10))
+	b.WriteString(a.nonce)
+	
+	expected	:= hash.HMAC_SHA256([]byte(api_secret), b.Bytes())
+	actual		:= strings.ToLower(received_signature)
+	
+	if !hmac.Equal(expected, []byte(actual)) {
+		return false, received, nil
+	}
+	
+	if err := a.use_nonce(); err != nil {
+		return false, received, err
+	}
+	
+	return true, received, nil
+}
+
+func (a *Auth) use_nonce() error {
+	ok, err := a.Use_nonce(a.Request.Context(), a.hash_key(), a.Expires * expiry_multiplier)
 	if err != nil {
 		return fmt.Errorf("Could not validate nonce")
 	}
 	if !ok {
 		return fmt.Errorf("Nonce is already used")
 	}
-	
 	return nil
+}
+
+func (a *Auth) hash_key() string {
+	return fmt.Sprintf("%s:%s:%d:%s", a.Hash_prefix, a.API_key, a.time, a.nonce)
 }
