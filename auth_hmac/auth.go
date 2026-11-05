@@ -84,12 +84,11 @@ func (a *Auth) generate_signature(id uint64) ([]byte, int, error){
 	b.WriteByte('\n')
 	b.WriteString(a.Request.Host)
 	b.WriteString(a.Request.URL.Path)
-	b.WriteByte('\n')
-	
 	if a.Request.URL.RawQuery != "" {
 		b.WriteByte('?')
 		b.WriteString(a.Request.URL.RawQuery)
 	}
+	b.WriteByte('\n')
 	
 	if a.Request.Method != http.MethodGet {
 		body, err := io.ReadAll(a.Request.Body)
@@ -102,9 +101,9 @@ func (a *Auth) generate_signature(id uint64) ([]byte, int, error){
 		
 		b.Write(body)
 		a.Request.Body = io.NopCloser(bytes.NewReader(body))
+		b.WriteByte('\n')
 	}
 	
-	b.WriteByte('\n')
 	b.WriteString(strconv.FormatUint(id, 10))
 	b.WriteByte('\n')
 	b.WriteString(a.API_key)
