@@ -20,7 +20,7 @@ type Auth struct {
 	Request		*http.Request
 	Hash_prefix	string
 	Expires		int
-	Use_nonce	func(ctx context.Context, hash string, expire int) (bool, error)
+	Use_nonce	func(ctx context.Context, hash_key string, expire int) (bool, error)
 	time		int64
 	nonce		string
 }
@@ -71,7 +71,7 @@ func (a *Auth) Validate_signature(id uint64, api_secret, received_signature stri
 	if a.Request.Method != http.MethodGet {
 		body, err := io.ReadAll(a.Request.Body)
 		if err != nil {
-			return false, 0, err
+			return false, 0, fmt.Errorf("Read request body: %w", err)
 		}
 		a.Request.Body.Close()
 		
@@ -101,7 +101,8 @@ func (a *Auth) Validate_signature(id uint64, api_secret, received_signature stri
 }
 
 func (a *Auth) use_nonce() error {
-	ok, err := a.Use_nonce(a.Request.Context(), a.hash_key(), a.Expires * expiry_multiplier)
+	hash_key := fmt.Sprintf("%s:%s:%d:%s", a.Hash_prefix, a.API_key, a.time, a.nonce)
+	ok, err := a.Use_nonce(a.Request.Context(), hash_key, a.Expires * expiry_multiplier)
 	if err != nil {
 		return fmt.Errorf("Could not validate nonce")
 	}
@@ -109,8 +110,4 @@ func (a *Auth) use_nonce() error {
 		return fmt.Errorf("Nonce is already used")
 	}
 	return nil
-}
-
-func (a *Auth) hash_key() string {
-	return fmt.Sprintf("%s:%s:%d:%s", a.Hash_prefix, a.API_key, a.time, a.nonce)
 }
