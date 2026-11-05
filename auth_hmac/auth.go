@@ -60,7 +60,7 @@ func (a *Auth) Validate_signature(api_secret, received_signature string) (bool, 
 		return false, received, err
 	}
 	
-	expected	:= hash.HMAC_SHA256_hex_bytes([]byte(api_secret), signature)
+	expected	:= hash.HMAC_SHA256([]byte(api_secret), signature).Hex_bytes()
 	actual		:= strings.ToLower(received_signature)
 	
 	if !hmac.Equal(expected, []byte(actual)) {
