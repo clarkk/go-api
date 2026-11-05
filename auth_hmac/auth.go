@@ -55,38 +55,12 @@ func (a *Auth) Validate_nonce(header_name string) error {
 }
 
 func (a *Auth) Validate_signature(id uint64, api_secret, received_signature string) (bool, int, error){
-	var (
-		received	int
-		b			bytes.Buffer
-	)
-	
-	b.WriteString(a.Request.Host)
-	b.WriteString(a.Request.URL.Path)
-	
-	if a.Request.URL.RawQuery != "" {
-		b.WriteByte('?')
-		b.WriteString(a.Request.URL.RawQuery)
+	signature, received, err := a.generate_signature(id)
+	if err != nil {
+		return false, received, err
 	}
 	
-	if a.Request.Method != http.MethodGet {
-		body, err := io.ReadAll(a.Request.Body)
-		if err != nil {
-			return false, 0, fmt.Errorf("Read request body: %w", err)
-		}
-		a.Request.Body.Close()
-		
-		received = len(body)
-		
-		b.Write(body)
-		a.Request.Body = io.NopCloser(bytes.NewReader(body))
-	}
-	
-	b.WriteString(strconv.FormatUint(id, 10))
-	b.WriteString(a.API_key)
-	b.WriteString(strconv.FormatInt(a.time, 10))
-	b.WriteString(a.nonce)
-	
-	expected	:= hash.HMAC_SHA256([]byte(api_secret), b.Bytes())
+	expected	:= hash.HMAC_SHA256([]byte(api_secret), signature)
 	actual		:= strings.ToLower(received_signature)
 	
 	if !hmac.Equal(expected, []byte(actual)) {
@@ -98,6 +72,48 @@ func (a *Auth) Validate_signature(id uint64, api_secret, received_signature stri
 	}
 	
 	return true, received, nil
+}
+
+func (a *Auth) generate_signature(id uint64) ([]byte, int, error){
+	var (
+		received	int
+		b			bytes.Buffer
+	)
+	
+	b.WriteString(a.Request.Method)
+	b.WriteByte('\n')
+	b.WriteString(a.Request.Host)
+	b.WriteString(a.Request.URL.Path)
+	b.WriteByte('\n')
+	
+	if a.Request.URL.RawQuery != "" {
+		b.WriteByte('?')
+		b.WriteString(a.Request.URL.RawQuery)
+	}
+	
+	if a.Request.Method != http.MethodGet {
+		body, err := io.ReadAll(a.Request.Body)
+		if err != nil {
+			return nil, 0, fmt.Errorf("Read request body: %w", err)
+		}
+		a.Request.Body.Close()
+		
+		received = len(body)
+		
+		b.Write(body)
+		a.Request.Body = io.NopCloser(bytes.NewReader(body))
+	}
+	
+	b.WriteByte('\n')
+	b.WriteString(strconv.FormatUint(id, 10))
+	b.WriteByte('\n')
+	b.WriteString(a.API_key)
+	b.WriteByte('\n')
+	b.WriteString(strconv.FormatInt(a.time, 10))
+	b.WriteByte('\n')
+	b.WriteString(a.nonce)
+	
+	return b.Bytes(), received, nil
 }
 
 func (a *Auth) use_nonce() error {
