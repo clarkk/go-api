@@ -54,8 +54,8 @@ func (a *Auth) Validate_nonce(header_name string) error {
 	return nil
 }
 
-func (a *Auth) Validate_signature(id uint64, api_secret, received_signature string) (bool, int, error){
-	signature, received, err := a.generate_signature(id)
+func (a *Auth) Validate_signature(api_secret, received_signature string) (bool, int, error){
+	signature, received, err := a.generate_signature()
 	if err != nil {
 		return false, received, err
 	}
@@ -74,7 +74,7 @@ func (a *Auth) Validate_signature(id uint64, api_secret, received_signature stri
 	return true, received, nil
 }
 
-func (a *Auth) generate_signature(id uint64) ([]byte, int, error){
+func (a *Auth) generate_signature() ([]byte, int, error){
 	var (
 		received	int
 		b			bytes.Buffer
@@ -104,8 +104,6 @@ func (a *Auth) generate_signature(id uint64) ([]byte, int, error){
 	}
 	b.WriteByte('\n')
 	
-	b.WriteString(strconv.FormatUint(id, 10))
-	b.WriteByte('\n')
 	b.WriteString(a.API_key)
 	b.WriteByte('\n')
 	b.WriteString(strconv.FormatInt(a.time, 10))
