@@ -193,7 +193,7 @@ func (a *Request) Idempotency_hash() (string, error){
 	if header_etag := a.r.Header.Get(head.IF_MATCH); header_etag != "" {
 		s += ":"+header_etag
 	}
-	return hash.SHA256_hex(append([]byte(s+":"), a.body_received...)), nil
+	return hash.SHA256(append([]byte(s+":"), a.body_received...)).Hex(), nil
 }
 
 func (a *Request) payload_JSON(post_limit int) ([]byte, int, error){
