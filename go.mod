@@ -5,7 +5,7 @@ go 1.27.2
 require (
 	github.com/clarkk/go-dbd v0.0.0-20261014121119-d23088b4e03d
 	github.com/clarkk/go-dtm v0.0.0-20261106002357-2d46fad3fee1
-	github.com/clarkk/go-util v0.0.0-20261113094419-952ef0ef43f5
+	github.com/clarkk/go-util v0.0.0-20261113095104-e8e5bf2115ae
 	github.com/go-errors/errors v1.5.1
 )
 
