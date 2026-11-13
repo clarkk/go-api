@@ -60,6 +60,10 @@ func GMT_unix_time(unix_time int64) string {
 	return time.Unix(unix_time, 0).UTC().Format(http.TimeFormat)
 }
 
+func Response_allow_CORS(w http.ResponseWriter, allow string){
+	w.Header().Set("Access-Control-Allow-Origin", allow)
+}
+
 func Response_cache_control(days int) string {
 	return "public, max-age="+strconv.Itoa(60 * 60 * 24 * days)+", immutable"
 }
