@@ -25,6 +25,8 @@ const (
 	USER_AGENT			= "User-Agent"
 	VERSION 			= "Version"
 	
+	CACHE_CONTROL		= "Cache-Control"
+	
 	IF_MATCH			= "If-Match"
 )
 
@@ -63,5 +65,5 @@ func Response_allow_CORS(w http.ResponseWriter, allow string){
 }
 
 func Response_cache_control_public_immutable(w http.ResponseWriter, days int){
-	w.Header().Set("Cache-Control", "public, max-age="+strconv.Itoa(60 * 60 * 24 * days)+", immutable")
+	w.Header().Set(CACHE_CONTROL, "public, max-age="+strconv.Itoa(60 * 60 * 24 * days)+", immutable")
 }
