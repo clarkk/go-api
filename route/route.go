@@ -129,6 +129,9 @@ func (a *Request) Entity_errors(errs errin.Map_lang, raw_error bool) errin.Map {
 		}
 		trans.Set(field, msg)
 	})
+	errs.Each_map(func(field string, nested errin.Map_lang){
+		trans.Set_map(field, a.Entity_errors(nested, raw_error))
+	})
 	return trans
 }
 
