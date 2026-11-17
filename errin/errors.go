@@ -56,6 +56,38 @@ func (m *Map_lang) Set_map(key string, value Map_lang){
 	})
 }
 
+func (m Map) Each(fn func(key, val string)){
+	for _, v := range m {
+		if v.nested == nil {
+			fn(v.key, v.value)
+		}
+	}
+}
+
+func (m Map) Each_map(fn func(key string, val Map)){
+	for _, v := range m {
+		if v.nested != nil {
+			fn(v.key, *v.nested)
+		}
+	}
+}
+
+func (m Map_lang) Each(fn func(key string, val *Lang)){
+	for _, v := range m {
+		if v.nested == nil {
+			fn(v.key, v.value)
+		}
+	}
+}
+
+func (m Map_lang) Each_map(fn func(key string, val Map_lang)){
+	for _, v := range m {
+		if v.nested != nil {
+			fn(v.key, *v.nested)
+		}
+	}
+}
+
 func (m Map) Has(key string) bool {
 	for _, v := range m {
 		if v.key == key {
